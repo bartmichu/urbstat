@@ -1,8 +1,6 @@
-import { createRequire } from 'std/node/module.ts';
-const require = createRequire(import.meta.url);
-const crypto = require('crypto');
-// import { crypto } from 'https://deno.land/std@0.112.0/crypto/mod.ts';
-import { createHash } from 'https://deno.land/std@0.160.0/hash/mod.ts';
+import { pbkdf2 } from "std/node/crypto.ts";
+import { createHash } from "std/node/crypto.ts";
+
 
 /**
  * Represents a UrBackup Server.
@@ -91,20 +89,19 @@ export default class UrbackupServer {
      */
     function pbkdf2Async(password) {
       return new Promise((resolve, reject) => {
-        crypto.pbkdf2(password, salt, rounds, 32, 'sha256', (error, key) => {
+        pbkdf2(password, salt, rounds, 32, 'sha256', (error, key) => {
           return error ? reject(error) : resolve(key);
         });
       });
     }
 
-    // let passwordHash = crypto.createHash('md5').update(salt + this.#password, 'utf8').digest();
     let passwordHash = createHash('md5').update(salt + this.#password, 'utf8').digest();
     let derivedKey;
 
     if (rounds > 0) {
       derivedKey = await pbkdf2Async(passwordHash);
     }
-    passwordHash = crypto.createHash('md5').update(randomKey + (rounds > 0 ? derivedKey.toString('hex') : passwordHash), 'utf8').digest('hex');
+    passwordHash = createHash('md5').update(randomKey + (rounds > 0 ? derivedKey.toString('hex') : passwordHash), 'utf8').digest('hex');
 
     return passwordHash;
   }
