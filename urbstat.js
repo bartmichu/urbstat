@@ -1,6 +1,3 @@
-// import { assertEquals } from "std/testing/assert.ts";
-// assertEquals(1, 2);
-
 import UrbackupServer from './module/urbackup-server-lite.js';
 import { config } from 'std/dotenv/mod.ts';
 import { Command, EnumType } from 'cliffy/command/mod.ts';
@@ -19,7 +16,6 @@ const programName = 'urbstat';
  * Hard-coded configuration values used as a fallback when not found in config files.
  */
 const configFallback = {
-  // DevSkim: ignore DS137138
   URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
   URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
   URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
@@ -73,13 +69,13 @@ const configData = await config({
 });
 
 
-// TODO convert to iife
+// TODO: convert to iife
 const getConfigValue = function (key) {
   if (key in configFallback) {
     // console.debug(key);
     return configData[key] ?? configFallback[key].defaultValue;
   } else {
-    // TODO
+    // TODO:
     console.debug('BAR');
   }
 };
@@ -126,15 +122,15 @@ const normalizeClient = function (client, format) {
   if (format === 'raw') {
     return client;
   } else {
-    return (function ({ id, name, file_ok, file_disabled, last_filebackup_issues, lastbackup, image_ok, image_disabled, last_imagebackup_issues, lastbackup_image, online, lastseen, status }) { // eslint-disable-line camelcase
+    return (function ({ id, name, file_ok, file_disabled, last_filebackup_issues, lastbackup, image_ok, image_disabled, last_imagebackup_issues, lastbackup_image, online, lastseen, status }) {
 
-      // TODO file_disabled, last_imagebackup_issues ??
+      // TODO: file_disabled, last_imagebackup_issues ??
       if (file_disabled === true) {
         file_ok = 'disabled';
       } else if (file_ok === true) {
         file_ok = last_filebackup_issues === 0 ? 'ok' : 'issues';
       } else {
-        // TODO no recent === failed?
+        // TODO: no recent === failed?
         file_ok = 'failed';
       }
 
@@ -143,7 +139,7 @@ const normalizeClient = function (client, format) {
       } else if (image_ok === true) {
         image_ok = last_imagebackup_issues === 0 ? 'ok' : 'issues';
       } else {
-        // TODO no recent === failed?
+        // TODO: no recent === failed?
         image_ok = 'failed';
       }
 
@@ -170,7 +166,7 @@ const normalizeActivity = function (activity, last, format) {
   switch (format) {
     case 'table':
       if (last === true) {
-        return (function ({ clientid, name, id, duration, size_bytes, backuptime }) { // eslint-disable-line camelcase
+        return (function ({ clientid, name, id, duration, size_bytes, backuptime }) {
           return ({
             'Activity Id': id,
             'Client Id': clientid,
@@ -181,7 +177,7 @@ const normalizeActivity = function (activity, last, format) {
           });
         })(activity);
       } else {
-        return (function ({ clientid, name, action, paused, pcdone, queue, done_bytes, total_bytes, eta_ms }) { // eslint-disable-line camelcase
+        return (function ({ clientid, name, action, paused, pcdone, queue, done_bytes, total_bytes, eta_ms }) {
           return ({
             'Client Id': clientid,
             'Client Name': name,
@@ -189,7 +185,7 @@ const normalizeActivity = function (activity, last, format) {
             Paused: paused === true ? 'yes' : 'no',
             Progress: pcdone,
             Queue: queue,
-            // TODO
+            // TODO:
             'Bytes Done': activity.del === true ? done_bytes * -1 : done_bytes,
             Size: total_bytes,
             ETA: eta_ms
@@ -389,7 +385,7 @@ const processMatchingActivities = function (activities, last, commandOptions) {
     }
   })
 
-  // TODO dodać zmiany wprowadzone dla klientów
+  // TODO: add client changes
 }
 
 
@@ -464,7 +460,7 @@ cli.command('get-all-clients', 'Get all clients.\nRequired rights: status(all).\
 
 cli
   .command('get-ok-clients', 'Get OK clients i.e. clients with OK backup status.\nBackups finished with issues are treated as OK by default.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -507,7 +503,7 @@ cli
 
 
 cli.command('get-failed-clients', 'Get failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -548,7 +544,7 @@ cli.command('get-failed-clients', 'Get failed clients i.e. clients with failed b
 
 
 cli.command('get-stale-clients', `Get stale clients i.e. clients without a recent backup as configured in ${programName}.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.`)
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -597,7 +593,7 @@ cli.command('get-stale-clients', `Get stale clients i.e. clients without a recen
 
 
 cli.command('get-blank-clients', 'Get blank clients i.e. clients without any finished backups.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -638,7 +634,7 @@ cli.command('get-blank-clients', 'Get blank clients i.e. clients without any fin
 
 cli
   .command('get-void-clients', `Get void clients i.e. clients not seen for a long time as configured in ${programName}.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.`)
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -679,7 +675,7 @@ cli
 
 
 cli.command('get-online-clients', 'Get online clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -708,7 +704,7 @@ cli.command('get-online-clients', 'Get online clients.\nRequired rights: status(
 
 
 cli.command('get-offline-clients', 'Get offline clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -737,7 +733,7 @@ cli.command('get-offline-clients', 'Get offline clients.\nRequired rights: statu
 
 
 cli.command('get-active-clients', 'Get currently active clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -765,7 +761,7 @@ cli.command('get-active-clients', 'Get currently active clients.\nRequired right
 
 
 cli.command('get-current-activities', 'Get current activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -801,7 +797,7 @@ cli.command('get-current-activities', 'Get current activities.\nRequired rights:
 
 
 cli.command('get-last-activities', 'Get last activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -834,7 +830,7 @@ cli.command('get-last-activities', 'Get last activities.\nRequired rights: progr
 
 
 cli.command('get-paused-activities', 'Get paused activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -869,7 +865,7 @@ cli.command('get-paused-activities', 'Get paused activities.\nRequired rights: p
 
 
 cli.command('get-client', 'Get detailed information about one client.\nRequired rights: status(all), progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.')
-  .example('TODO', '')
+  .example('TODO:', '')
   .option('--format <format:clientFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENT_FORMAT')
   })
@@ -915,8 +911,8 @@ cli.command('get-client', 'Get detailed information about one client.\nRequired 
   });
 
 
-cli.command('get-usage', 'TODO')
-  .example('TODO', '')
+cli.command('get-usage', 'TODO:')
+  .example('TODO:', '')
   // .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
   //   default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   // })
@@ -932,7 +928,7 @@ cli.command('get-usage', 'TODO')
   // })
   .action((commandOptions) => {
     makeServerCalls(['usage']).then(() => {
-      // TODO
+      // TODO:
       console.debug(usageResponse);
     });
   });
