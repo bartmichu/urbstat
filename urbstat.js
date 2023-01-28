@@ -1,7 +1,7 @@
 // import { assertEquals } from "std/testing/assert.ts";
 // assertEquals(1, 2);
 
-import UrbackupServer from './module/index.js';
+import UrbackupServer from './module/urbackup-server-lite.js';
 import { config } from 'std/dotenv/mod.ts';
 import { Command, EnumType } from 'cliffy/command/mod.ts';
 import { Table } from 'cliffy/table/mod.ts';
