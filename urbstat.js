@@ -7,12 +7,6 @@ import ms from 'ms/';
 
 
 /**
- * Application name. Used in auto-generated help etc.
- */
-const programName = 'urbstat';
-
-
-/**
  * Hard-coded configuration values used as a fallback when not found in config files.
  */
 const configFallback = {
@@ -393,11 +387,11 @@ const processMatchingActivities = function (activities, last, commandOptions) {
  * Main command.
  */
 const cli = await new Command()
-  .name(programName)
+  .name('urbstat')
   .version('0.0.1')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options are set in .env.defaults file. You can modify them with .env configuration file.')
-  .example('Get failed clients', `${programName} get-failed-clients`)
-  .example('Get options and detailed help for specific command', `${programName} get-failed-clients --help`)
+  .example('Get failed clients', 'urbstat get-failed-clients')
+  .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
   .globalType('clientsFormatValues', new EnumType(configFallback.URBSTAT_CLIENTS_FORMAT.recognizedValues))
   .globalType('clientsSortValues', new EnumType(configFallback.URBSTAT_CLIENTS_SORT.recognizedValues))
   .globalType('activitiesFormatValues', new EnumType(configFallback.URBSTAT_ACTIVITIES_FORMAT.recognizedValues))
@@ -411,7 +405,7 @@ const cli = await new Command()
 
 
 cli.command('get-raw-status', 'Get raw response of "status" API call.\nRequired rights: status(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
-  .example('Get raw response', `${programName} get-raw-status`)
+  .example('Get raw response', 'urbstat get-raw-status')
   .action(() => {
     makeServerCalls(['status']).then(() => {
       printOutput(statusResponse, 'raw');
@@ -420,7 +414,7 @@ cli.command('get-raw-status', 'Get raw response of "status" API call.\nRequired 
 
 
 cli.command('get-raw-activities', 'Get raw response of "activities" API call.\nRequired rights: progress(all), lastacts(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
-  .example('Get raw response', `${programName} get-raw-activities`)
+  .example('Get raw response', 'urbstat get-raw-activities')
   .action(() => {
     makeServerCalls(['activities']).then(() => {
       printOutput(activitiesResponse, 'raw');
@@ -429,11 +423,11 @@ cli.command('get-raw-activities', 'Get raw response of "activities" API call.\nR
 
 
 cli.command('get-all-clients', 'Get all clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('Get all clients with default options', `${programName} get-all-clients`)
-  .example('Get the total number of all clients', `${programName} get-all-clients --format "number"`)
-  .example('Get a table with all clients sorted by last file backup time', `${programName} get-all-clients --format "table" --sort "file"`)
-  .example('Get names of all clients in reverse order', `${programName} get-all-clients --format "list" --sort "name" --reverse`)
-  .example('Get names of three of the longest-unseen clients', `${programName} get-all-clients --format "list" --sort "seen" --max 3`)
+  .example('Get all clients with default options', 'urbstat get-all-clients')
+  .example('Get the total number of all clients', 'urbstat get-all-clients --format "number"')
+  .example('Get a table with all clients sorted by last file backup time', 'urbstat get-all-clients --format "table" --sort "file"')
+  .example('Get names of all clients in reverse order', 'urbstat get-all-clients --format "list" --sort "name" --reverse')
+  .example('Get names of three of the longest-unseen clients', 'urbstat get-all-clients --format "list" --sort "seen" --max 3')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -543,7 +537,7 @@ cli.command('get-failed-clients', 'Get failed clients i.e. clients with failed b
   });
 
 
-cli.command('get-stale-clients', `Get stale clients i.e. clients without a recent backup as configured in ${programName}.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.`)
+cli.command('get-stale-clients', 'Get stale clients i.e. clients without a recent backup as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.')
   .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
@@ -633,7 +627,7 @@ cli.command('get-blank-clients', 'Get blank clients i.e. clients without any fin
 
 
 cli
-  .command('get-void-clients', `Get void clients i.e. clients not seen for a long time as configured in ${programName}.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.`)
+  .command('get-void-clients', 'Get void clients i.e. clients not seen for a long time as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.')
   .example('TODO:', '')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
