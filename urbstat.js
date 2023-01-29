@@ -389,7 +389,7 @@ const processMatchingActivities = function (activities, last, commandOptions) {
 const cli = await new Command()
   .name('urbstat')
   .version('0.0.1')
-  .description('The Missing Command-line Tool for UrBackup Server.\nDefault options are set in .env.defaults file. You can modify them with .env configuration file.')
+  .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat get-failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
   .globalType('clientsFormatValues', new EnumType(configFallback.URBSTAT_CLIENTS_FORMAT.recognizedValues))
