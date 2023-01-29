@@ -905,27 +905,4 @@ cli.command('get-client', 'Get detailed information about one client.\nRequired 
   });
 
 
-cli.command('get-usage', 'TODO:')
-  .example('TODO:', '')
-  // .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
-  //   default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
-  // })
-  // .option('--sort <field:currentActivitiesSortValues>', 'Change the sorting order.  Ignored with \'raw\' output format.', {
-  //   default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT')
-  // })
-  // .option('--reverse', 'Reverse the sorting order. Ignored with \'raw\' output format.')
-  // .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', {
-  //   default: 0
-  // })
-  // .option('--client-name <name:string>', 'Limit activities to specified client only.', {
-  //   default: ''
-  // })
-  .action((commandOptions) => {
-    makeServerCalls(['usage']).then(() => {
-      // TODO:
-      console.debug(usageResponse);
-    });
-  });
-
-
 cli.parse(Deno.args);
