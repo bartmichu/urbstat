@@ -66,11 +66,10 @@ const configData = await config({
 // TODO: convert to iife
 const getConfigValue = function (key) {
   if (key in configFallback) {
-    // console.debug(key);
     return configData[key] ?? configFallback[key].defaultValue;
   } else {
-    // TODO:
-    console.debug('BAR');
+    // TODO: implement this path
+    console.debug(key);
   }
 };
 
