@@ -22,7 +22,7 @@ Implemented features:
 - Get void clients, that is clients not seen for a long time (as configured in
   urbstat)
 - Get online, offline, active clients
-- Get current, last, paused activities
+- Get current, last (finished), paused activities
 
 On the roadmap:
 
@@ -30,7 +30,49 @@ On the roadmap:
 - Ability to query multiple servers at the same time
 - Your suggestion goes here
 
----
+## Command examples
+
+Get the number of clients with failed image backup:
+
+```shell
+get-failed-clients --skip-file --format number
+```
+
+Get clients with last file backup older than a day (1440 minutes):
+
+```shell
+get-stale-clients --threshold-file 1440 --sort name --format table
+```
+
+Get clients not seen for more than two days (2880 minutes):
+
+```shell
+get-void-clients --threshold 2880 --sort name --format table
+```
+
+Get a list with names of clients without any finished backup:
+
+```shell
+get-blank-clients --format list
+```
+
+Get current activity with the longest ETA:
+
+```shell
+get-current-activities --max 1 --sort eta --reverse --format table
+```
+
+Get a table with last activities of "office" client, sorted by size:
+
+```shell
+get-last-activities --limit-client office --sort size --format table
+```
+
+Get five longest running last activities:
+
+```shell
+get-last-activities --max 5 --sort duration --reverse --format table
+```
 
 ## Usage
 
@@ -46,16 +88,12 @@ If you have issues with self-signed certificates then you can use this command:
 deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env --unsafely-ignore-certificate-errors=hostname urbstat.js
 ```
 
----
-
 ## Configuration
 
 - Default options are configured in `.env.defaults` file
 - You can override default settings in `.env` file
 - Most options can also be modified at run time with command options, check
   `urbstat <command> --help` for more details
-
----
 
 ## Documentation
 
@@ -72,8 +110,6 @@ Get more help about specific command and applicable options:
 ```shell
 urbstat.js <command> --help
 ```
-
----
 
 ## Security considerations
 
@@ -97,16 +133,12 @@ urbstat.js <command> --help
 - Make sure `.env` configuration file has strict file permissions if you put
   your password there
 
----
-
 ## Dependencies
 
 `urbstat` uses some third party modules:
 
 - Cliffy https://cliffy.io
 - ms https://github.com/vercel/ms
-
----
 
 ## License
 

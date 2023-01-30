@@ -404,7 +404,7 @@ const cli = await new Command()
 
 
 cli.command('get-raw-status', 'Get raw response of "status" API call.\nRequired rights: status(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
-  .example('Get raw response', 'urbstat get-raw-status')
+  .example('Get raw response', 'get-raw-status')
   .action(() => {
     makeServerCalls(['status']).then(() => {
       printOutput(statusResponse, 'raw');
@@ -413,7 +413,7 @@ cli.command('get-raw-status', 'Get raw response of "status" API call.\nRequired 
 
 
 cli.command('get-raw-activities', 'Get raw response of "activities" API call.\nRequired rights: progress(all), lastacts(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
-  .example('Get raw response', 'urbstat get-raw-activities')
+  .example('Get raw response', 'get-raw-activities')
   .action(() => {
     makeServerCalls(['activities']).then(() => {
       printOutput(activitiesResponse, 'raw');
@@ -422,11 +422,11 @@ cli.command('get-raw-activities', 'Get raw response of "activities" API call.\nR
 
 
 cli.command('get-all-clients', 'Get all clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('Get all clients with default options', 'urbstat get-all-clients')
-  .example('Get the total number of all clients', 'urbstat get-all-clients --format "number"')
-  .example('Get a table with all clients sorted by last file backup time', 'urbstat get-all-clients --format "table" --sort "file"')
-  .example('Get names of all clients in reverse order', 'urbstat get-all-clients --format "list" --sort "name" --reverse')
-  .example('Get names of three of the longest-unseen clients', 'urbstat get-all-clients --format "list" --sort "seen" --max 3')
+  .example('Get all clients, use default options', 'get-all-clients')
+  .example('Get the total number of all clients', 'get-all-clients --format "number"')
+  .example('Get a sorted table', 'get-all-clients --format "table" --sort "file"')
+  .example('Get reversed list', 'get-all-clients --format "list" --sort "name" --reverse')
+  .example('Get names of three of the longest-unseen clients', 'get-all-clients --format "list" --sort "seen" --max 3')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -453,7 +453,11 @@ cli.command('get-all-clients', 'Get all clients.\nRequired rights: status(all).\
 
 cli
   .command('get-ok-clients', 'Get OK clients i.e. clients with OK backup status.\nBackups finished with issues are treated as OK by default.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get OK clients, use default options', 'get-ok-clients')
+  .example('Get the total number of OK clients', 'get-ok-clients --format "number"')
+  .example('Get a sorted table', 'get-ok-clients --format "table" --sort "file"')
+  .example('Get a sorted table, skip file BUP problems', 'get-ok-clients --format "table" --sort "image" --skip-file')
+  .example('Get reversed list', 'get-ok-clients --format "list" --sort "name" --reverse')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -496,7 +500,11 @@ cli
 
 
 cli.command('get-failed-clients', 'Get failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get FAILED clients, use default options', 'get-failed-clients')
+  .example('Get the total number of FAILED clients', 'get-failed-clients --format "number"')
+  .example('Get a sorted table', 'get-failed-clients --format "table" --sort "file"')
+  .example('Get a sorted table, skip file BUP problems', 'get-failed-clients --format "table" --sort "image" --skip-file')
+  .example('Get reversed list', 'get-failed-clients --format "list" --sort "name" --reverse')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -537,7 +545,14 @@ cli.command('get-failed-clients', 'Get failed clients i.e. clients with failed b
 
 
 cli.command('get-stale-clients', 'Get stale clients i.e. clients without a recent backup as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.')
-  .example('TODO:', '')
+  .example('Get STALE clients, use default options', 'get-stale-clients')
+  .example('Get the total number of STALE clients', 'get-stale-clients --format "number"')
+  .example('Get a sorted table', 'get-stale-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'get-stale-clients --format "table" --sort "name" --skip-blank')
+  .example('Get a sorted table, skip file backups', 'get-stale-clients --format "table" --sort "image" --skip-file')
+  .example('Get reversed list', 'get-stale-clients --format "list" --sort "name" --reverse')
+  .example('Get clients with file BUP older than a day', 'get-stale-clients --format "table" --sort "name" --threshold-file 1440')
+  .example('Get number of clients with image BUP older than 12hrs', 'get-stale-clients --format "number" --threshold-image 720 --skip-file')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -586,7 +601,11 @@ cli.command('get-stale-clients', 'Get stale clients i.e. clients without a recen
 
 
 cli.command('get-blank-clients', 'Get blank clients i.e. clients without any finished backups.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get BLANK clients, use default options', 'get-blank-clients')
+  .example('Get the total number of BLANK clients', 'get-blank-clients --format "number"')
+  .example('Get a sorted table', 'get-blank-clients --format "table" --sort "seen"')
+  .example('Get a sorted table, skip image backups', 'get-blank-clients --format "table" --sort "name" --skip-image')
+  .example('Get reversed list', 'get-blank-clients --format "list" --sort "name" --reverse')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -627,7 +646,13 @@ cli.command('get-blank-clients', 'Get blank clients i.e. clients without any fin
 
 cli
   .command('get-void-clients', 'Get void clients i.e. clients not seen for a long time as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.')
-  .example('TODO:', '')
+  .example('Get VOID clients, use default options', 'get-void-clients')
+  .example('Get the total number of VOID clients', 'get-void-clients --format "number"')
+  .example('Get a sorted table', 'get-void-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'get-void-clients --format "table" --sort "seen" --skip-blank')
+  .example('Get reversed list', 'get-void-clients --format "list" --sort "name" --reverse')
+  .example('Get clients not seen for more than two days', 'get-void-clients --format "table" --sort "name" --threshold 2880')
+  .example('Get number of clients not seen for more than 12hrs', 'get-void-clients --format "number" --threshold 720')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -668,7 +693,11 @@ cli
 
 
 cli.command('get-online-clients', 'Get online clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get ONLINE clients, use default options', 'get-online-clients')
+  .example('Get the total number of ONLINE clients', 'get-online-clients --format "number"')
+  .example('Get a sorted table', 'get-online-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'get-online-clients --format "table" --sort "name" --skip-blank')
+  .example('Get reversed list', 'get-online-clients --format "list" --sort "name" --reverse')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -697,7 +726,11 @@ cli.command('get-online-clients', 'Get online clients.\nRequired rights: status(
 
 
 cli.command('get-offline-clients', 'Get offline clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get OFFLINE clients, use default options', 'get-offline-clients')
+  .example('Get the total number of OFFLINE clients', 'get-offline-clients --format "number"')
+  .example('Get a sorted table', 'get-offline-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'get-offline-clients --format "table" --sort "name" --skip-blank')
+  .example('Get reversed list', 'get-offline-clients --format "list" --sort "name" --reverse')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -726,7 +759,10 @@ cli.command('get-offline-clients', 'Get offline clients.\nRequired rights: statu
 
 
 cli.command('get-active-clients', 'Get currently active clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get ACTIVE clients, use default options', 'get-active-clients')
+  .example('Get the total number of ACTIVE clients', 'get-active-clients --format "number"')
+  .example('Get a sorted table', 'get-active-clients --format "table" --sort "name"')
+  .example('Get reversed list', 'get-active-clients --format "list" --sort "name" --reverse')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT')
   })
@@ -754,7 +790,13 @@ cli.command('get-active-clients', 'Get currently active clients.\nRequired right
 
 
 cli.command('get-current-activities', 'Get current activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get CURRENT activities, use default options', 'get-current-activities')
+  .example('Get the total number of CURRENT activities', 'get-current-activities --format "number"')
+  .example('Get a sorted table', 'get-current-activities --format "table" --sort "progress"')
+  .example('Get a sorted table, skip PAUSED activities', 'get-current-activities --format "table" --sort "progress" --skip-paused')
+  .example('Get three activities with longest ETA', 'get-current-activities --format "table" --sort "eta" --max 3 --reverse')
+  .example('Get CURRENT activities of selected client', 'get-current-activities --format "table" --sort "eta" --limit-client "office"')
+
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -790,7 +832,12 @@ cli.command('get-current-activities', 'Get current activities.\nRequired rights:
 
 
 cli.command('get-last-activities', 'Get last activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get LAST activities, use default options', 'get-last-activities')
+  .example('Get the total number of LAST activities', 'get-last-activities --format "number"')
+  .example('Get a sorted table', 'get-last-activities --format "table" --sort "progress"')
+  .example('Get three activities with biggest size', 'get-last-activities --format "table" --sort "size" --max 3 --reverse')
+  .example('Get three longest activities', 'get-last-activities --format "table" --sort "duration" --max 3 --reverse')
+  .example('Get LAST activities of selected client', 'get-last-activities --format "table" --sort "time" --limit-client "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -823,7 +870,11 @@ cli.command('get-last-activities', 'Get last activities.\nRequired rights: progr
 
 
 cli.command('get-paused-activities', 'Get paused activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.')
-  .example('TODO:', '')
+  .example('Get PAUSED activities, use default options', 'get-paused-activities')
+  .example('Get the total number of PAUSED activities', 'get-paused-activities --format "number"')
+  .example('Get a sorted table', 'get-paused-activities --format "table" --sort "progress"')
+  .example('Get three activities with biggest size', 'get-paused-activities --format "table" --sort "size" --max 3 --reverse')
+  .example('Get PAUSED activities of selected client', 'get-paused-activities --format "table" --sort "time" --limit-client "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
