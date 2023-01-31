@@ -28,7 +28,11 @@ On the roadmap:
 
 - Usage statistics
 - Ability to query multiple servers at the same time
+- Repository for deb and rpm systems via OBS
 - Your suggestion goes here
+
+This application is in active development. Source file will be broken at times,
+but compiled binaries are being used on a daily basis and should be stable.
 
 ## Command examples
 
@@ -76,24 +80,50 @@ get-last-activities --max 5 --sort duration --reverse --format table
 
 ## Usage
 
-On the command line:
+The easiest way of running `urbstat` is with a downloaded binary file.
+
+Download one of the following binaries from the Releases page:
+
+- `urbstat` for Linux x64 systems
+- `urbstat-notls` for Linux x64 systems, compiled with TLS certificate
+  validation disabled. Use it only if you have problems with self-signed
+  certificates
+
+Make it executable:
+
+```shell
+chmod u+x urbstat
+chmod u+x urbstat-notls
+```
+
+Create a configuration file in the same directory and simply run application:
+
+```shell
+./urbstat --help
+./urbstat-notls --help
+```
+
+If you want, you can also directly run source file with Deno:
 
 ```shell
 deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env urbstat.js
-```
 
-If you have issues with self-signed certificates then you can use this command:
-
-```shell
 deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env --unsafely-ignore-certificate-errors=hostname urbstat.js
 ```
 
 ## Configuration
 
-- Default options are configured in `.env.defaults` file
-- You can override default settings in `.env` file
+- Default options are configured in `.env.defaults` file, do not modify this
+  file
+- Set your custom options in `.env` file, check `.env.example` for available
+  options
 - Most options can also be modified at run time with command options, check
   `urbstat <command> --help` for more details
+- Unless it is a default installation (localhost:55414, admin, no password), you
+  should set at least `URBSTAT_SERVER_URL`, `URBSTAT_SERVER_USERNAME` and
+  `URBSTAT_SERVER_PASSWORD`
+- All configuration files should be placed in the same directory as downloaded
+  binary file
 
 ## Documentation
 
@@ -102,13 +132,13 @@ Documentation is accessible via the `--help` option of `urbstat` application.
 Get general help and a list of available commands:
 
 ```shell
-urbstat.js --help
+./urbstat --help
 ```
 
 Get more help about specific command and applicable options:
 
 ```shell
-urbstat.js <command> --help
+./urbstat <command> --help
 ```
 
 ## Security considerations
@@ -133,6 +163,12 @@ urbstat.js <command> --help
 - Make sure `.env` configuration file has strict file permissions if you put
   your password there
 
+- `urbstat` binary is compiled with
+  `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env`
+  flags, `urbstat-notls` is compiled with
+  `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env --unsafely-ignore-certificate-errors`
+  flags
+
 ## Dependencies
 
 `urbstat` uses some third party modules:
@@ -142,4 +178,4 @@ urbstat.js <command> --help
 
 ## License
 
-[MIT License](https://github.com/bartmichu/urbstat/blob/main/LICENSE).
+[MIT License](https://github.com/bartmichu/urbstat/blob/main/LICENSE)
