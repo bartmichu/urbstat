@@ -156,39 +156,34 @@ const normalizeClient = function (client, format) {
  * Normalize activity object for further use in application.
  */
 const normalizeActivity = function (activity, last, format) {
-  switch (format) {
-    case 'table':
-      if (last === true) {
-        return (function ({ clientid, name, id, duration, size_bytes, backuptime }) {
-          return ({
-            'Activity Id': id,
-            'Client Id': clientid,
-            'Client Name': name,
-            Duration: duration,
-            Size: activity.del === true ? size_bytes * -1 : size_bytes,
-            'Starting Time': backuptime
-          });
-        })(activity);
-      } else {
-        return (function ({ clientid, name, action, paused, pcdone, queue, done_bytes, total_bytes, eta_ms }) {
-          return ({
-            'Client Id': clientid,
-            'Client Name': name,
-            Action: action,
-            Paused: paused === true ? 'yes' : 'no',
-            Progress: pcdone,
-            Queue: queue,
-            // TODO:
-            'Bytes Done': activity.del === true ? done_bytes * -1 : done_bytes,
-            Size: total_bytes,
-            ETA: eta_ms
-          });
-        })(activity);
-      }
-    case 'number':
-      return activity.id;
-    case 'raw':
-      return activity;
+  if (format === 'raw') {
+    return activity;
+  } if (last === true) {
+    return (function ({ clientid, name, id, duration, size_bytes, backuptime }) {
+      return ({
+        'Activity Id': id,
+        'Client Id': clientid,
+        'Client Name': name,
+        Duration: duration,
+        Size: activity.del === true ? size_bytes * -1 : size_bytes,
+        'Starting Time': backuptime
+      });
+    })(activity);
+  } else {
+    return (function ({ clientid, name, action, paused, pcdone, queue, done_bytes, total_bytes, eta_ms }) {
+      return ({
+        'Client Id': clientid,
+        'Client Name': name,
+        Action: action,
+        Paused: paused === true ? 'yes' : 'no',
+        Progress: pcdone,
+        Queue: queue,
+        // TODO:
+        'Bytes Done': activity.del === true ? done_bytes * -1 : done_bytes,
+        Size: total_bytes,
+        ETA: eta_ms
+      });
+    })(activity);
   }
 };
 
