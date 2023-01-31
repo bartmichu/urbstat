@@ -12,27 +12,31 @@ Implemented features:
   workstation
 - Output can be presented in multiple formats, you can sort data and apply
   filters
-- Can be executed manually when needed or configured with automated monitoring
+- Can be executed manually when needed or used with automated monitoring
   solution like Zabbix
 - Get all clients, get clients with "OK" or "failed" backup status (as seen in
   server web UI)
-- Get stale clients, that is clients without a recent backup (as configured in
-  urbstat)
-- Get blank clients, that is clients without any finished backups
-- Get void clients, that is clients not seen for a long time (as configured in
-  urbstat)
+- Get clients without a recent backup (stale clients), with thresholds
+  configured in urbstatus
+- Get clients without any finished backups (blank clients)
+- Get clients not seen for a long time (void clients), with threshold configured
+  in urbstat
 - Get online, offline, active clients
 - Get current, last (finished), paused activities
 
 On the roadmap:
 
-- Usage statistics
+- Ability to get usage statistics
+- Ability to get detailed report about selected client
 - Ability to query multiple servers at the same time
 - Repository for deb and rpm systems via OBS
 - Your suggestion goes here
 
-This application is in active development. Source file will be broken at times,
-but compiled binaries are being used on a daily basis and should be stable.
+This application is in active development. `Main` branch should be stable and is
+being used on a daily basis on my servers. `Unstable` branch is where I'm
+experimenting and it can be broken at any given time.
+
+Please report bugs and issues via GitHub!
 
 ## Command examples
 
@@ -82,7 +86,8 @@ get-last-activities --max 5 --sort duration --reverse --format table
 
 The easiest way of running `urbstat` is with a downloaded binary file.
 
-Download one of the following binaries from the Releases page:
+Download one of the following binaries from the
+[Releases](https://github.com/bartmichu/urbstat/releases) page:
 
 - `urbstat` for Linux x64 systems
 - `urbstat-notls` for Linux x64 systems, compiled with TLS certificate
@@ -96,7 +101,10 @@ chmod u+x urbstat
 chmod u+x urbstat-notls
 ```
 
-Create a configuration file in the same directory and simply run application:
+Create `.env` configuration file (you can use
+[this example file](https://raw.githubusercontent.com/bartmichu/urbstat/main/.env.example)),
+place it in the same directory where `usbstat` binary is stored, and simply run
+application:
 
 ```shell
 ./urbstat --help
@@ -113,7 +121,7 @@ deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:por
 
 ## Configuration
 
-- Default options are configured in `.env.defaults` file, do not modify this
+- Default options are configured in `.env.defaults` file, do not modify that
   file
 - Set your custom options in `.env` file, check `.env.example` for available
   options
