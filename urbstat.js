@@ -37,10 +37,18 @@ const configFallback = {
     defaultValue: 'time',
     recognizedValues: ['client', 'time', 'duration', 'size']
   },
+  URBSTAT_USAGE_FORMAT: {
+    defaultValue: 'table',
+    recognizedValues: ['table', 'list', 'raw']
+  },
+  URBSTAT_USAGE_SORT: {
+    defaultValue: 'total',
+    recognizedValues: ['name', 'file', 'image', 'total']
+  },
   URBSTAT_CLIENT_FORMAT: {
     defaultValue: 'info',
     recognizedValues: ['info', 'raw']
-  },
+  }
 };
 
 
@@ -189,6 +197,26 @@ const normalizeActivity = function (activity, last, format) {
 
 
 /**
+ * Normalize usage object for further use in application.
+ */
+const normalizeUsage = function (element, format) {
+  if (format === 'raw') {
+    return element;
+  } else {
+    return (function ({ files, images, name, used }) {
+
+      return ({
+        'Client Name': name,
+        'File Backups': files,
+        'Image Backups': images,
+        'Total': used
+      });
+    })(element);
+  }
+};
+
+
+/**
  * Sort clients. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
  */
@@ -246,6 +274,32 @@ const sortActivities = function (activities, last, format, order, reverse) {
 };
 
 
+/**
+ * Sort usage. This function sorts the elements of an array in place.
+ * NOTE: Sorting must be done after normalization.
+ */
+const sortUsage = function (usages, format, order, reverse) {
+  switch (order) {
+    case 'name':
+      usages.sort((a, b) => a['Client Name'].localeCompare(b['Client Name'], getConfigValue('URBSTAT_LOCALE'), { sensitivity: 'base' }));
+      break;
+    case 'file':
+      usages.sort((a, b) => a['File Backups'] - b['File Backups']);
+      break;
+    case 'image':
+      usages.sort((a, b) => a['Image Backups'] - b['Image Backups']);
+      break;
+    case 'total':
+      usages.sort((a, b) => a.Total - b.Total);
+      break;
+  }
+
+  if (reverse === true && format !== 'number') {
+    usages.reverse();
+  }
+};
+
+
 const printOutput = function (data, format) {
   const formatBytes = function (bytes, decimals = 2) {
     if (bytes === 0) {
@@ -266,6 +320,12 @@ const printOutput = function (data, format) {
       Object.keys(data[element]).forEach(function (key) {
         switch (key) {
           case 'Bytes Done':
+          /* falls through */
+          case 'File Backups':
+          /* falls through */
+          case 'Image Backups':
+          /* falls through */
+          case 'Total':
           /* falls through */
           case 'Size':
             data[element][key] = formatBytes(data[element][key], 2);
@@ -343,6 +403,9 @@ const processMatchingData = function (data, type, commandOptions) {
       case 'lastActivities':
         data[index] = normalizeActivity(element, true, commandOptions?.format);
         break;
+      case 'usage':
+        data[index] = normalizeUsage(element, commandOptions?.format);
+        break;
       default:
         break;
     }
@@ -358,6 +421,9 @@ const processMatchingData = function (data, type, commandOptions) {
         break;
       case 'lastActivities':
         sortActivities(data, true, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        break;
+      case 'usage':
+        sortUsage(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       default:
         break;
@@ -384,6 +450,14 @@ const processMatchingData = function (data, type, commandOptions) {
           break;
       }
     }
+
+    if (type === 'usage') {
+      switch (commandOptions?.format) {
+        case 'list':
+          data[index] = element['Client Name'];
+          break;
+      }
+    }
   })
 }
 
@@ -393,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.10.1')
+  .version('0.11.1')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat get-failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
@@ -402,6 +476,8 @@ const cli = await new Command()
   .globalType('activitiesFormatValues', new EnumType(configFallback.URBSTAT_ACTIVITIES_FORMAT.recognizedValues))
   .globalType('currentActivitiesSortValues', new EnumType(configFallback.URBSTAT_ACTIVITIES_SORT_CURRENT.recognizedValues))
   .globalType('lastActivitiesSortValues', new EnumType(configFallback.URBSTAT_ACTIVITIES_SORT_LAST.recognizedValues))
+  .globalType('usageFormatValues', new EnumType(configFallback.URBSTAT_USAGE_FORMAT.recognizedValues))
+  .globalType('usageSortValues', new EnumType(configFallback.URBSTAT_USAGE_SORT.recognizedValues))
   .globalType('clientFormatValues', new EnumType(configFallback.URBSTAT_CLIENT_FORMAT.recognizedValues))
   .action(() => {
     cli.showHelp();
@@ -913,5 +989,40 @@ cli.command('get-paused-activities', 'Get paused activities.\nRequired rights: p
     });
   });
 
+
+cli.command('get-usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_USAGE_FORMAT, URBSTAT_USAGE_SORT, URBSTAT_LOCALE.')
+  .example('Get storage usage, use default options', 'get-usage')
+  .example('Get a sorted table', 'get-usage --format "table" --sort "name"')
+  .example('Get three clients with biggest usage', 'get-usage --format "table" --sort "total" --max 3 --reverse')
+  .example('Get storage usage of selected client', 'get-usage --format "table" --limit-client "office"')
+  .option('--format <format:usageFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_USAGE_FORMAT')
+  })
+  .option('--sort <field:usageSortValues>', 'Change the sorting order. Ignored with \'raw\' output format.', {
+    default: getConfigValue('URBSTAT_USAGE_SORT')
+  })
+  .option('--reverse', 'Reverse the sorting order. Ignored with \'raw\' output format.')
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', {
+    default: 0
+  })
+  .option('--limit-client <name:string>', 'Limit usage to specified client only.', {
+    default: ''
+  })
+  .action((commandOptions) => {
+    makeServerCalls(['usage']).then(() => {
+      const matchingUsage = [];
+
+      for (const usage of usageResponse) {
+        if (commandOptions.limitClient.length > 0 && usage.name !== commandOptions.limitClient) {
+          continue;
+        }
+
+        matchingUsage.push(usage);
+      }
+
+      processMatchingData(matchingUsage, 'usage', commandOptions);
+      printOutput(matchingUsage, commandOptions?.format);
+    });
+  });
 
 cli.parse(Deno.args);

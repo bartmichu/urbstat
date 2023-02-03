@@ -1,8 +1,8 @@
 # URBSTAT
 
 The missing command-line tool for UrBackup Server. It provides you with
-information about clients status and activities on your server, helps to detect
-and diagnose problems.
+information about data usage, clients status and activities, helps to detect and
+diagnose problems.
 
 Implemented features:
 
@@ -23,10 +23,10 @@ Implemented features:
   in urbstat
 - Get online, offline, active clients
 - Get current, last (finished), paused activities
+- Get storage usage
 
 On the roadmap:
 
-- Ability to get usage statistics
 - Ability to get detailed report about selected client
 - Ability to query multiple servers at the same time
 - Repository for deb and rpm systems via OBS
@@ -80,6 +80,12 @@ Get five longest running last activities:
 
 ```shell
 get-last-activities --max 5 --sort duration --reverse --format table
+```
+
+Get three clients with biggest storage usage:
+
+```shell
+get-usage --format "table" --sort "total" --max 3 --reverse
 ```
 
 ## Usage
