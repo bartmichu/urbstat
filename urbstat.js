@@ -2,7 +2,7 @@ import UrbackupServer from './module/urbackup-server-lite.js';
 import { config } from 'std/dotenv/mod.ts';
 import { Command, EnumType } from 'cliffy/command/mod.ts';
 import { Table } from 'cliffy/table/mod.ts';
-import { colors } from "cliffy/ansi/colors.ts";
+import { colors } from 'cliffy/ansi/colors.ts';
 import ms from 'ms/';
 
 
@@ -260,43 +260,46 @@ const printOutput = function (data, format) {
     return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + units[unitIndex];
   };
 
-  for (const element in data) {
-    Object.keys(data[element]).forEach(function (key) {
-      switch (key) {
-        case 'Bytes Done':
-        /* falls through */
-        case 'Size':
-          data[element][key] = formatBytes(data[element][key], 2);
-          break;
-        case 'Duration':
-          data[element][key] = ms(data[element][key] * 1000);
-          break;
-        case 'ETA':
-          data[element][key] = data[element][key] <= 0 ? 'n/a' : ms(data[element][key]);
-          break;
-        case 'Starting Time':
-        /* falls through */
-        case 'Last File BUP':
-        /* falls through */
-        case 'Last Image BUP':
-        /* falls through */
-        case 'Last Seen':
-          if (data[element][key] === 0) {
-            data[element][key] = 'never';
-          } else {
-            data[element][key] = new Date(data[element][key] * 1000).toLocaleString(getConfigValue('URBSTAT_LOCALE'));
-          }
-          break;
-        case 'Activity':
-          if (data[element][key] === 0) {
-            data[element][key] = 'none';
-          }
-          break;
-        case 'Progress':
-          data[element][key] = `${data[element][key]}%`
-          break;
-      }
-    });
+  // TODO: || 'raw'?
+  if (format !== 'number') {
+    for (const element in data) {
+      Object.keys(data[element]).forEach(function (key) {
+        switch (key) {
+          case 'Bytes Done':
+          /* falls through */
+          case 'Size':
+            data[element][key] = formatBytes(data[element][key], 2);
+            break;
+          case 'Duration':
+            data[element][key] = ms(data[element][key] * 1000);
+            break;
+          case 'ETA':
+            data[element][key] = data[element][key] <= 0 ? 'n/a' : ms(data[element][key]);
+            break;
+          case 'Starting Time':
+          /* falls through */
+          case 'Last File BUP':
+          /* falls through */
+          case 'Last Image BUP':
+          /* falls through */
+          case 'Last Seen':
+            if (data[element][key] === 0) {
+              data[element][key] = 'never';
+            } else {
+              data[element][key] = new Date(data[element][key] * 1000).toLocaleString(getConfigValue('URBSTAT_LOCALE'));
+            }
+            break;
+          case 'Activity':
+            if (data[element][key] === 0) {
+              data[element][key] = 'none';
+            }
+            break;
+          case 'Progress':
+            data[element][key] = `${data[element][key]}%`
+            break;
+        }
+      });
+    }
   }
 
   switch (format) {
@@ -326,54 +329,62 @@ const printOutput = function (data, format) {
 
 
 /**
- * Process clients i.e. normalize, sort and limit. This function changes elements of an array in place.
+ * Process matching data i.e. normalize, sort and limit. This function changes elements of an array in place.
  */
-const processMatchingClients = function (clients, commandOptions) {
-  clients.forEach((client, index) => {
-    clients[index] = normalizeClient(client, commandOptions?.format);
+const processMatchingData = function (data, type, commandOptions) {
+  data.forEach((element, index) => {
+    switch (type) {
+      case 'clients':
+        data[index] = normalizeClient(element, commandOptions?.format);
+        break;
+      case 'currentActivities':
+        data[index] = normalizeActivity(element, false, commandOptions?.format);
+        break;
+      case 'lastActivities':
+        data[index] = normalizeActivity(element, true, commandOptions?.format);
+        break;
+      default:
+        break;
+    }
   });
 
   if (commandOptions.format !== 'raw') {
-    sortClients(clients, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
-  }
-
-  clients.splice(commandOptions?.max > 0 ? commandOptions.max : clients.length);
-
-  clients.forEach((client, index) => {
-    switch (commandOptions?.format) {
-      case 'list':
-      /* falls through */
-      case 'number':
-        clients[index] = client['Client Name'];
+    switch (type) {
+      case 'clients':
+        sortClients(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        break;
+      case 'currentActivities':
+        sortActivities(data, false, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        break;
+      case 'lastActivities':
+        sortActivities(data, true, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        break;
+      default:
         break;
     }
-  })
-};
-
-
-/**
- * Process activities i.e. normalize, sort and limit. This function changes elements of an array in place.
- */
-const processMatchingActivities = function (activities, last, commandOptions) {
-  activities.forEach((activity, index) => {
-    activities[index] = normalizeActivity(activity, last, commandOptions?.format);
-  });
-
-  if (commandOptions.format !== 'raw') {
-    sortActivities(activities, last, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
   }
 
-  activities.splice(commandOptions?.max > 0 ? commandOptions.max : activities.length);
+  data.splice(commandOptions?.max > 0 ? commandOptions.max : data.length);
 
-  activities.forEach((activity, index) => {
-    switch (commandOptions?.format) {
-      case 'number':
-        activities[index] = activity['Activity Id'];
-        break;
+  data.forEach((element, index) => {
+    if (type === 'clients') {
+      switch (commandOptions?.format) {
+        case 'list':
+        /* falls through */
+        case 'number':
+          data[index] = element['Client Name'];
+          break;
+      }
+    }
+
+    if (type === 'currentActivities' || 'lastActivities') {
+      switch (commandOptions?.format) {
+        case 'number':
+          data[index] = element['Activity Id'];
+          break;
+      }
     }
   })
-
-  // TODO: add client changes
 }
 
 
@@ -382,7 +393,7 @@ const processMatchingActivities = function (activities, last, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.9.1')
+  .version('0.10.1')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat get-failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
@@ -440,7 +451,7 @@ cli.command('get-all-clients', 'Get all clients.\nRequired rights: status(all).\
         matchingClients.push(client);
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -488,7 +499,7 @@ cli
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -533,7 +544,7 @@ cli.command('get-failed-clients', 'Get failed clients i.e. clients with failed b
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -589,7 +600,7 @@ cli.command('get-stale-clients', 'Get stale clients i.e. clients without a recen
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -633,7 +644,7 @@ cli.command('get-blank-clients', 'Get blank clients i.e. clients without any fin
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -681,7 +692,7 @@ cli
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -714,7 +725,7 @@ cli.command('get-online-clients', 'Get online clients.\nRequired rights: status(
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -747,7 +758,7 @@ cli.command('get-offline-clients', 'Get offline clients.\nRequired rights: statu
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -778,7 +789,7 @@ cli.command('get-active-clients', 'Get currently active clients.\nRequired right
         }
       }
 
-      processMatchingClients(matchingClients, commandOptions);
+      processMatchingData(matchingClients, 'clients', commandOptions);
       printOutput(matchingClients, commandOptions?.format);
     });
   });
@@ -820,7 +831,7 @@ cli.command('get-current-activities', 'Get current activities.\nRequired rights:
         }
       }
 
-      processMatchingActivities(matchingActivities, false, commandOptions);
+      processMatchingData(matchingActivities, 'currentActivities', commandOptions);
       printOutput(matchingActivities, commandOptions?.format);
     });
   });
@@ -858,7 +869,7 @@ cli.command('get-last-activities', 'Get last activities.\nRequired rights: progr
         matchingActivities.push(activity);
       }
 
-      processMatchingActivities(matchingActivities, true, commandOptions);
+      processMatchingData(matchingActivities, 'lastActivities', commandOptions);
       printOutput(matchingActivities, commandOptions?.format);
     });
   });
@@ -897,7 +908,7 @@ cli.command('get-paused-activities', 'Get paused activities.\nRequired rights: p
         }
       }
 
-      processMatchingActivities(matchingActivities, false, commandOptions);
+      processMatchingData(matchingActivities, 'currentActivities', commandOptions);
       printOutput(matchingActivities, commandOptions?.format);
     });
   });
