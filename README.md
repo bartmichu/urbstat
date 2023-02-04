@@ -32,9 +32,12 @@ On the roadmap:
 - Repository for deb and rpm systems via OBS
 - Your suggestion goes here
 
-This application is in active development. `Main` branch should be stable and is
-being used on a daily basis on my servers. `Unstable` branch is where I'm
-experimenting and it can be broken at any given time.
+This Deno application is provided both as a self-contained compiled executable
+and as a bundled script file which you run with Deno.
+
+It is in active development. `Main` branch should be stable and is being used on
+a daily basis on my servers. `Unstable` branch is where I'm experimenting and it
+can be broken at any given time.
 
 Please report bugs and issues via GitHub!
 
@@ -85,22 +88,21 @@ get-last-activities --max 5 --sort duration --reverse --format table
 Get three clients with biggest storage usage:
 
 ```shell
-get-usage --format "table" --sort "total" --max 3 --reverse
+get-usage --format table --sort total --max 3 --reverse
 ```
 
 ## Usage
 
-The easiest way of running `urbstat` is with a downloaded binary file.
-
-Download one of the following binaries from the
-[Releases](https://github.com/bartmichu/urbstat/releases) page:
+The easiest way of running `urbstat` is with a self-contained executable you can
+download from the [Releases](https://github.com/bartmichu/urbstat/releases)
+page:
 
 - `urbstat` for Linux x64 systems
 - `urbstat-notls` for Linux x64 systems, compiled with TLS certificate
   validation disabled. Use it only if you have problems with self-signed
   certificates
 
-Make it executable:
+Download one of these files and make it executable:
 
 ```shell
 chmod u+x urbstat
@@ -109,7 +111,7 @@ chmod u+x urbstat-notls
 
 Create `.env` configuration file (you can use
 [this example file](https://raw.githubusercontent.com/bartmichu/urbstat/main/.env.example)),
-place it in the same directory where `usbstat` binary is stored, and simply run
+place it in the same directory with `usbstat` binary, and then simply run
 application:
 
 ```shell
@@ -117,12 +119,12 @@ application:
 ./urbstat-notls --help
 ```
 
-If you want, you can also directly run source file with Deno:
+Alternatively, you can run bundled script file with Deno:
 
 ```shell
-deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env urbstat.js
+deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env urbstat.bundle.js
 
-deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env --unsafely-ignore-certificate-errors=hostname urbstat.js
+deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env --unsafely-ignore-certificate-errors=hostname urbstat.bundle.js
 ```
 
 ## Configuration
@@ -182,6 +184,10 @@ Get more help about specific command and applicable options:
   flags, `urbstat-notls` is compiled with
   `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env --unsafely-ignore-certificate-errors`
   flags
+
+- In some scenarios you may want to download and inspect a bundle script, set
+  connection details directly in the source file, and only then compile it
+  yourself
 
 ## Dependencies
 
