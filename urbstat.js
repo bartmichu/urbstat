@@ -1,4 +1,4 @@
-import UrbackupServer from './module/urbackup-server-lite.js';
+import UrbackupServer from './urbackup-server-lite.js';
 import { config } from 'std/dotenv/mod.ts';
 import { Command, EnumType } from 'cliffy/command/mod.ts';
 import { Table } from 'cliffy/table/mod.ts';
@@ -467,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.11.1')
+  .version('0.12.1')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat get-failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
