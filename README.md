@@ -41,6 +41,10 @@ can be broken at any given time.
 
 Please report bugs and issues via GitHub!
 
+## Quick demo
+
+[![asciicast](https://asciinema.org/a/557533.svg)](https://asciinema.org/a/557533)
+
 ## Command examples
 
 Get the number of clients with failed image backup:
