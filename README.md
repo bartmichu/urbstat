@@ -24,10 +24,10 @@ Implemented features:
 - Get online, offline, active clients
 - Get current, last (finished), paused activities
 - Get storage usage
+- Get all info about selected client at once
 
 On the roadmap:
 
-- Ability to get detailed report about selected client
 - Ability to query multiple servers at the same time
 - Repository for deb and rpm systems via OBS
 - Your suggestion goes here

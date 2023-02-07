@@ -46,8 +46,8 @@ const configFallback = {
     recognizedValues: ['name', 'file', 'image', 'total']
   },
   URBSTAT_CLIENT_FORMAT: {
-    defaultValue: 'info',
-    recognizedValues: ['info', 'raw']
+    defaultValue: 'table',
+    recognizedValues: ['table', 'raw']
   }
 };
 
@@ -467,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.12.1')
+  .version('0.13.0')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat get-failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
@@ -1024,5 +1024,72 @@ cli.command('get-usage', 'Get storage usage.\nRequired rights: piegraph(all).\nI
       printOutput(matchingUsage, commandOptions?.format);
     });
   });
+
+
+cli.command('get-client', 'Get all information about one client.\nRequired rights: status(all), progress(all), lastacts(all).\nIf you specify "raw" format then property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.')
+  .example('Get all info about "office" client', 'get-client --client-name "office"')
+  .option('--format <format:clientFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENT_FORMAT')
+  })
+  .option('--client-id <Id:integer>', 'Client\'s Id Number.')
+  .option('--client-name <name:string>', 'Client\'s Name.')
+  .action(function (commandOptions) {
+    // NOTE: don't use arrow function here (this)
+    const extraArguments = {};
+    if (commandOptions?.clientId > 0) {
+      extraArguments.clientId = commandOptions.clientId;
+    } else if (commandOptions?.clientName?.length > 0) {
+      extraArguments.clientName = commandOptions.clientName;
+    }
+
+    if (Object.keys(extraArguments).length > 0) {
+      makeServerCalls(['status', 'activities', 'usage'], extraArguments).then(() => {
+        const matchingClient = []
+        matchingClient.push(statusResponse[0]);
+
+        if (typeof matchingClient[0] !== 'undefined' && matchingClient[0]?.id > 0) {
+          const matchingClientId = matchingClient[0].id;
+          const matchingCurrentActivities = activitiesResponse.current.filter(activity => activity.clientid === matchingClientId);
+          const matchingLastActivities = activitiesResponse.past.filter(activity => activity.clientid === matchingClientId);
+          const matchingUsage = [];
+          matchingUsage.push(usageResponse.find(element => element.name === matchingClient[0].name));
+
+          console.debug('Status:')
+          processMatchingData(matchingClient, 'clients', commandOptions);
+          printOutput(matchingClient, commandOptions?.format);
+
+          console.log('Current activities:')
+          processMatchingData(matchingCurrentActivities, 'currentActivities', commandOptions);
+          if (matchingCurrentActivities.length > 0) {
+            printOutput(matchingCurrentActivities, commandOptions?.format);
+          } else {
+            if (commandOptions?.format !== 'raw') {
+              console.log('none');
+            }
+          }
+
+          console.log('Last activities:')
+          processMatchingData(matchingLastActivities, 'lastActivities', commandOptions);
+          if (matchingLastActivities.length > 0) {
+            printOutput(matchingLastActivities, commandOptions?.format);
+          } else {
+            console.log('none');
+          }
+
+          console.log('Usage:')
+          processMatchingData(matchingUsage, 'usage', commandOptions);
+          printOutput(matchingUsage, commandOptions?.format);
+        } else {
+          console.log(cliTheme.warning('Client not found'));
+          Deno.exit(1);
+        }
+      });
+    } else {
+      this.showHelp();
+      console.log(cliTheme.error('error: You need to provide "--client-id" or "--client-name" option to this command'));
+      Deno.exit(1);
+    }
+  });
+
 
 cli.parse(Deno.args);
