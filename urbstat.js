@@ -467,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.13.0')
+  .version('0.13.1')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat get-failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat get-failed-clients --help')
@@ -1054,7 +1054,7 @@ cli.command('get-client', 'Get all information about one client.\nRequired right
           const matchingUsage = [];
           matchingUsage.push(usageResponse.find(element => element.name === matchingClient[0].name));
 
-          console.debug('Status:')
+          console.log('Status:')
           processMatchingData(matchingClient, 'clients', commandOptions);
           printOutput(matchingClient, commandOptions?.format);
 
