@@ -1,6 +1,6 @@
 {
   "imports": {
-    "std/": "https://deno.land/std@0.174.0/",
+    "std/": "https://deno.land/std@0.178.0/",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
     "ms/": "https://cdn.skypack.dev/ms@2.1.3/"
   },

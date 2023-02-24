@@ -1,5 +1,5 @@
 import UrbackupServer from './urbackup-server-lite.js';
-import { config } from 'std/dotenv/mod.ts';
+import { load } from 'std/dotenv/mod.ts';
 import { Command, EnumType } from 'cliffy/command/mod.ts';
 import { Table } from 'cliffy/table/mod.ts';
 import { colors } from 'cliffy/ansi/colors.ts';
@@ -65,7 +65,7 @@ const cliTheme = {
 /**
  * Configuration data loaded from '.env' and '.env.defaults' files.
  */
-const configData = await config({
+const configData = await load({
   export: false,
   allowEmptyValues: false,
 });
