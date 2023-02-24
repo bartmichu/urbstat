@@ -33,7 +33,7 @@ On the roadmap:
 - Your suggestion goes here
 
 This Deno application is provided both as a self-contained compiled executable
-and as a bundled script file which you run with Deno.
+and as a script file which you run with Deno.
 
 It is in active development. `Main` branch should be stable and is being used on
 a daily basis on my servers. `Unstable` branch is where I'm experimenting and it
@@ -123,12 +123,12 @@ application:
 ./urbstat-notls --help
 ```
 
-Alternatively, you can run bundled script file with Deno:
+Alternatively, you can run source file with Deno:
 
 ```shell
-deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env urbstat.bundle.js
+deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env urbstat.js
 
-deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env --unsafely-ignore-certificate-errors=hostname urbstat.bundle.js
+deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:port --allow-env --unsafely-ignore-certificate-errors=hostname urbstat.js
 ```
 
 ## Configuration
@@ -189,7 +189,7 @@ Get more help about specific command and applicable options:
   `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env --unsafely-ignore-certificate-errors`
   flags
 
-- In some scenarios you may want to download and inspect a bundle script, set
+- In some scenarios you may want to download and inspect a source script, set
   connection details directly in the source file, and only then compile it
   yourself
 
