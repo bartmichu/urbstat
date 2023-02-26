@@ -1,6 +1,9 @@
-import { pbkdf2 } from "node:crypto";
-import { createHash } from "node:crypto";
+// TODO: re-enable when node specifiers are supported with compile command
+// import { pbkdf2 } from "node:crypto";
+// import { createHash } from "node:crypto";
 
+import { pbkdf2 } from "std/node/crypto.ts";
+import { createHash } from "std/node/crypto.ts";
 
 /**
  * Represents a UrBackup Server.
