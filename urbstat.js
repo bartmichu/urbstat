@@ -92,7 +92,7 @@ const server = new UrbackupServer({
 });
 
 
-// NOTE: Convertion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds
+// NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds
 const currentEpochTime = Math.round(new Date().getTime() / 1000.0);
 
 
