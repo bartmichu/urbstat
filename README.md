@@ -51,51 +51,51 @@ through GitHub.
 Retrieve the number of clients with failed image backup:
 
 ```shell
-get-failed-clients --skip-file --format number
+failed-clients --skip-file --format number
 ```
 
 Retrieve clients with a file backup that is older than 24 hours (1440 minutes)
 since the last backup:
 
 ```shell
-get-stale-clients --threshold-file 1440 --sort name --format table
+stale-clients --threshold-file 1440 --sort name --format table
 ```
 
 Retrieve clients that have not been seen for more than 48 hours (2880 minutes):
 
 ```shell
-get-void-clients --threshold 2880 --sort name --format table
+void-clients --threshold 2880 --sort name --format table
 ```
 
 Retrieve a list containing the names of clients that have not yet completed any
 backup:
 
 ```shell
-get-blank-clients --format list
+blank-clients --format list
 ```
 
 Retrieve the current activity with the longest estimated time of arrival (ETA).:
 
 ```shell
-get-current-activities --max 1 --sort eta --reverse --format table
+current-activities --max 1 --sort eta --reverse --format table
 ```
 
 Get a table with the last activities of the "office" client sorted by size:
 
 ```shell
-get-last-activities --limit-client office --sort size --format table
+last-activities --limit-client office --sort size --format table
 ```
 
 Retrieve the five longest running activities that have been completed:
 
 ```shell
-get-last-activities --max 5 --sort duration --reverse --format table
+last-activities --max 5 --sort duration --reverse --format table
 ```
 
 Get three clients with biggest storage usage:
 
 ```shell
-get-usage --format table --sort total --max 3 --reverse
+usage --format table --sort total --max 3 --reverse
 ```
 
 ## Usage
