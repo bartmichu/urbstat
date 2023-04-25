@@ -467,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.2.1-alpha')
+  .version('0.2.2-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat failed-clients --help')
@@ -499,6 +499,15 @@ cli.command('raw-activities', 'Get raw response of "activities" API call.\nRequi
   .action(() => {
     makeServerCalls(['activities']).then(() => {
       printOutput(activitiesResponse, 'raw');
+    });
+  });
+
+
+cli.command('raw-usage', 'Get raw response of "usage" API call.\nRequired rights: piegraph(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
+  .example('Get raw response', 'raw-usage')
+  .action(() => {
+    makeServerCalls(['usage']).then(() => {
+      printOutput(usageResponse, 'raw');
     });
   });
 
