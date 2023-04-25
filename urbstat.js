@@ -467,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.16.0-alpha')
+  .version('0.2.1-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat failed-clients --help')
@@ -877,7 +877,7 @@ cli.command('current-activities', 'Get current activities.\nRequired rights: pro
   .example('Get a sorted table', 'current-activities --format "table" --sort "progress"')
   .example('Get a sorted table, skip PAUSED activities', 'current-activities --format "table" --sort "progress" --skip-paused')
   .example('Get three activities with longest ETA', 'current-activities --format "table" --sort "eta" --max 3 --reverse')
-  .example('Get CURRENT activities of selected client', 'current-activities --format "table" --sort "eta" --limit-client "office"')
+  .example('Get CURRENT activities of selected client', 'current-activities --format "table" --sort "eta" --client "office"')
 
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
@@ -890,7 +890,7 @@ cli.command('current-activities', 'Get current activities.\nRequired rights: pro
     default: 0
   })
   .option('--skip-paused', 'Skip paused activities.')
-  .option('--limit-client <name:string>', 'Limit activities to specified client only.', {
+  .option('--client <name:string>', 'Limit activities to specified client only.', {
     default: ''
   })
   .action((commandOptions) => {
@@ -899,7 +899,7 @@ cli.command('current-activities', 'Get current activities.\nRequired rights: pro
 
       for (const activity of activitiesResponse.current) {
         if (commandOptions.skipPaused !== true || (commandOptions.skipPaused === true && activity.paused !== true)) {
-          if (commandOptions.limitClient.length > 0 && activity.name !== commandOptions.limitClient) {
+          if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
             continue;
           }
 
@@ -919,7 +919,7 @@ cli.command('last-activities', 'Get last activities.\nRequired rights: progress(
   .example('Get a sorted table', 'last-activities --format "table" --sort "progress"')
   .example('Get three activities with biggest size', 'last-activities --format "table" --sort "size" --max 3 --reverse')
   .example('Get three longest activities', 'last-activities --format "table" --sort "duration" --max 3 --reverse')
-  .example('Get LAST activities of selected client', 'last-activities --format "table" --sort "time" --limit-client "office"')
+  .example('Get LAST activities of selected client', 'last-activities --format "table" --sort "time" --client "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -930,7 +930,7 @@ cli.command('last-activities', 'Get last activities.\nRequired rights: progress(
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', {
     default: 0
   })
-  .option('--limit-client <name:string>', 'Limit activities to specified client only.', {
+  .option('--client <name:string>', 'Limit activities to specified client only.', {
     default: ''
   })
   .action((commandOptions) => {
@@ -938,7 +938,7 @@ cli.command('last-activities', 'Get last activities.\nRequired rights: progress(
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.past) {
-        if (commandOptions.limitClient.length > 0 && activity.name !== commandOptions.limitClient) {
+        if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
           continue;
         }
 
@@ -956,7 +956,7 @@ cli.command('paused-activities', 'Get paused activities.\nRequired rights: progr
   .example('Get the total number of PAUSED activities', 'paused-activities --format "number"')
   .example('Get a sorted table', 'paused-activities --format "table" --sort "progress"')
   .example('Get three activities with biggest size', 'paused-activities --format "table" --sort "size" --max 3 --reverse')
-  .example('Get PAUSED activities of selected client', 'paused-activities --format "table" --sort "time" --limit-client "office"')
+  .example('Get PAUSED activities of selected client', 'paused-activities --format "table" --sort "time" --client "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -967,7 +967,7 @@ cli.command('paused-activities', 'Get paused activities.\nRequired rights: progr
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', {
     default: 0
   })
-  .option('--limit-client <name:string>', 'Limit activities to specified client only.', {
+  .option('--client <name:string>', 'Limit activities to specified client only.', {
     default: ''
   })
   .action((commandOptions) => {
@@ -976,7 +976,7 @@ cli.command('paused-activities', 'Get paused activities.\nRequired rights: progr
 
       for (const activity of activitiesResponse.current) {
         if (activity.paused === true) {
-          if (commandOptions.limitClient.length > 0 && activity.name !== commandOptions.limitClient) {
+          if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
             continue;
           }
 
@@ -994,7 +994,7 @@ cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf yo
   .example('Get storage usage, use default options', 'usage')
   .example('Get a sorted table', 'usage --format "table" --sort "name"')
   .example('Get three clients with biggest usage', 'usage --format "table" --sort "total" --max 3 --reverse')
-  .example('Get storage usage of selected client', 'usage --format "table" --limit-client "office"')
+  .example('Get storage usage of selected client', 'usage --format "table" --client "office"')
   .option('--format <format:usageFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_USAGE_FORMAT')
   })
@@ -1005,7 +1005,7 @@ cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf yo
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', {
     default: 0
   })
-  .option('--limit-client <name:string>', 'Limit usage to specified client only.', {
+  .option('--client <name:string>', 'Limit usage to specified client only.', {
     default: ''
   })
   .action((commandOptions) => {
@@ -1013,7 +1013,7 @@ cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf yo
       const matchingUsage = [];
 
       for (const usage of usageResponse) {
-        if (commandOptions.limitClient.length > 0 && usage.name !== commandOptions.limitClient) {
+        if (commandOptions.client.length > 0 && usage.name !== commandOptions.client) {
           continue;
         }
 
@@ -1027,19 +1027,19 @@ cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf yo
 
 
 cli.command('client', 'Get all information about one client.\nRequired rights: status(all), progress(all), lastacts(all).\nIf you specify "raw" format then property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.')
-  .example('Get all info about "office" client', 'client --client-name "office"')
+  .example('Get all info about "office" client', 'client --name "office"')
   .option('--format <format:clientFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENT_FORMAT')
   })
-  .option('--client-id <Id:integer>', 'Client\'s Id Number.')
-  .option('--client-name <name:string>', 'Client\'s Name.')
+  .option('--id <Id:integer>', 'Client\'s Id Number.')
+  .option('--name <name:string>', 'Client\'s Name.')
   .action(function (commandOptions) {
     // NOTE: don't use arrow function here (this)
     const extraArguments = {};
-    if (commandOptions?.clientId > 0) {
-      extraArguments.clientId = commandOptions.clientId;
-    } else if (commandOptions?.clientName?.length > 0) {
-      extraArguments.clientName = commandOptions.clientName;
+    if (commandOptions?.id > 0) {
+      extraArguments.clientId = commandOptions.id;
+    } else if (commandOptions?.name?.length > 0) {
+      extraArguments.clientName = commandOptions.name;
     }
 
     if (Object.keys(extraArguments).length > 0) {
@@ -1086,7 +1086,7 @@ cli.command('client', 'Get all information about one client.\nRequired rights: s
       });
     } else {
       this.showHelp();
-      console.log(cliTheme.error('error: You need to provide "--client-id" or "--client-name" option to this command'));
+      console.log(cliTheme.error('error: You need to provide "--id" or "--name" option to this command'));
       Deno.exit(1);
     }
   });

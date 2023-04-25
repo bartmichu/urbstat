@@ -83,7 +83,7 @@ current-activities --max 1 --sort eta --reverse --format table
 Get a table with the last activities of the "office" client sorted by size:
 
 ```shell
-last-activities --limit-client office --sort size --format table
+last-activities --client office --sort size --format table
 ```
 
 Retrieve the five longest running activities that have been completed:
