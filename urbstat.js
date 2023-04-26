@@ -467,7 +467,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.2.2-alpha')
+  .version('0.2.3-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat failed-clients --help')
@@ -559,7 +559,7 @@ cli
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', {
     default: 0
   })
-  .option('--skip-file', 'Skip file backups when matching clients.')
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--strict', 'Do not treat backups finished with issues as being OK.')
   .action((commandOptions) => {
@@ -606,7 +606,7 @@ cli.command('failed-clients', 'Get failed clients i.e. clients with failed backu
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', {
     default: 0
   })
-  .option('--skip-file', 'Skip file backups when matching clients.')
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
@@ -660,7 +660,7 @@ cli.command('stale-clients', 'Get stale clients i.e. clients without a recent ba
   .option('--threshold-image <minutes:integer>', 'Set time threshold in minutes.', {
     default: getConfigValue('URBSTAT_THRESHOLD_STALE_IMAGE')
   })
-  .option('--skip-file', 'Skip file backups when matching clients.')
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
@@ -707,7 +707,7 @@ cli.command('blank-clients', 'Get blank clients i.e. clients without any finishe
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', {
     default: 0
   })
-  .option('--skip-file', 'Skip file backups when matching clients.')
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .action((commandOptions) => {
     makeServerCalls(['status']).then(() => {
@@ -1040,10 +1040,9 @@ cli.command('client', 'Get all information about one client.\nRequired rights: s
   .option('--format <format:clientFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENT_FORMAT')
   })
-  .option('--id <Id:integer>', 'Client\'s Id Number.')
+  .option('--id <Id:integer>', 'Client\'s Id Number.', { conflicts: ['name'] })
   .option('--name <name:string>', 'Client\'s Name.')
   .action(function (commandOptions) {
-    // NOTE: don't use arrow function here (this)
     const extraArguments = {};
     if (commandOptions?.id > 0) {
       extraArguments.clientId = commandOptions.id;
