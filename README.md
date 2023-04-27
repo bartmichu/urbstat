@@ -7,8 +7,8 @@ the system.
 
 You have the option to use this Deno application in two ways: either as a
 self-contained compiled executable or as a script file that runs with Deno.
-Although it is not entirely feature-complete, the Main branch is stable and has
-been utilized daily on a bunch of servers.
+Although it is not entirely feature-complete, the `Main` branch should be stable
+and has been utilized daily on a bunch of servers.
 
 The following features have been implemented:
 
@@ -45,6 +45,9 @@ through GitHub.
 ## Quick demo
 
 [![asciicast](https://asciinema.org/a/557533.svg)](https://asciinema.org/a/557533)
+
+Please keep in mind that this demo may represent an older version of `urbstat`
+with different command names and options.
 
 ## Command examples
 
@@ -135,15 +138,18 @@ deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:por
 
 ## Configuration
 
-- The default options are already set up in the .env.defaults file, so please
-  avoid modifying it.
-- You can set up your own custom options in the .env file, which you can find
-  examples of in the .env.example file.
+- The default options are already set up in the `.env.defaults` file, please
+  avoid modifying it. You can set up your own custom options in the `.env` file,
+  which you can find examples of in the `.env.example` file.
+- The default configuration file contains the URL and credentials that are set
+  by the UrBackup Server installation (localhost:55414, admin, no password). You
+  can change these by setting `URBSTAT_SERVER_URL`, `URBSTAT_SERVER_USERNAME`,
+  and `URBSTAT_SERVER_PASSWORD` in the `.env` file.
+- Password can be specified in a configuration file or interactively at runtime
+  when `--ask-pass` option is provided.
+
 - Many options can also be adjusted during runtime by using command options. For
-  more details, please refer to urbstat <command> --help.
-- If you're not using the default installation (i.e. localhost:55414, admin, no
-  password), you'll need to set at least URBSTAT_SERVER_URL,
-  URBSTAT_SERVER_USERNAME, and URBSTAT_SERVER_PASSWORD.
+  more details, please refer to `urbstat <command> --help`.
 - Make sure to place all configuration files in the same directory as the
   downloaded binary file.
 
@@ -166,30 +172,33 @@ Get more help about a specific command and its applicable options:
 
 ## Security considerations
 
-- The `urbstat` tool implements only a subset of the UrBackup server API. It
-  does not include methods to modify settings, add or remove clients and groups,
-  or start or stop activities.
+- This tool implements only a subset of the UrBackup server API. It does not
+  include methods to modify settings, add or remove clients and groups, start or
+  stop activities, access or delete files and backups.
 
-- Avoid using the `admin` account with `urbstat`. Instead, create a dedicated
-  user through the UrBackup Server web UI and apply the principle of least
-  privilege to that user. To get full functionality of `urbstat`, you should
-  grant the user all rights in the `status`, `lastacts`, `progress`, and
+- Avoid using the default `admin` account if possible. Instead, create a
+  dedicated user through the UrBackup Server web UI and apply the principle of
+  least privilege to that user. To get full functionality of `urbstat`, you
+  should grant the user all rights in the `status`, `lastacts`, `progress`, and
   `piegraph` domains.
 
 - Deno provides granular control over permissions. To restrict what `urbstat`
-  can access on your system and network, you should utilize the `allow-read` and
+  can access on your system and network, you can utilize the `allow-read` and
   `allow-net` flags.
 
 - Deno rejects self-signed certificates by default. If needed, you can use the
   `unsafely-ignore-certificate-errors=hostname` option or supply a certificate
   with the `cert ./ca.pem` option.
 
+- You can use '--ask-pass' option if you don't want to put password in a
+  configuration file.
+
 - Make sure `.env` configuration file has strict file permissions if you put
   your password there.
 
 - `urbstat` binary is compiled with
   `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env`
-  flags, `urbstat-notls` is compiled with
+  flags. `urbstat-notls` binary is compiled with
   `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env --unsafely-ignore-certificate-errors`
   flags.
 
