@@ -3,6 +3,7 @@ import { load } from 'std/dotenv/mod.ts';
 import { Command, EnumType } from 'cliffy/command/mod.ts';
 import { Table } from 'cliffy/table/mod.ts';
 import { colors } from 'cliffy/ansi/colors.ts';
+import { Secret } from 'cliffy/prompt/secret.ts';
 import ms from 'ms/';
 
 
@@ -82,16 +83,6 @@ const getConfigValue = function (key) {
 };
 
 
-/**
- * Instance of UrBackup Server.
- */
-const server = new UrbackupServer({
-  url: getConfigValue('URBSTAT_SERVER_URL'),
-  username: getConfigValue('URBSTAT_SERVER_USERNAME'),
-  password: getConfigValue('URBSTAT_SERVER_PASSWORD')
-});
-
-
 // NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds
 const currentEpochTime = Math.round(new Date().getTime() / 1000.0);
 
@@ -104,9 +95,23 @@ let usageResponse;
 /**
  * Make required API calls to UrBackup Server. Exits with error code when unsuccessful.
  */
-async function makeServerCalls(requiredCalls, extraArguments) {
+async function makeServerCalls(requiredCalls, commandOptions) {
+
+  let password;
+  if (commandOptions?.askPass === true) {
+    password = await Secret.prompt("Enter password");
+  } else {
+    password = getConfigValue('URBSTAT_SERVER_PASSWORD');
+  }
+
+  const server = new UrbackupServer({
+    url: getConfigValue('URBSTAT_SERVER_URL'),
+    username: getConfigValue('URBSTAT_SERVER_USERNAME'),
+    password: password
+  });
+
   try {
-    statusResponse = requiredCalls.includes('status') ? await server.getStatus({ includeRemoved: false, clientId: extraArguments?.clientId, clientName: extraArguments?.clientName }) : null;
+    statusResponse = requiredCalls.includes('status') ? await server.getStatus({ includeRemoved: false, clientId: commandOptions?.id, clientName: commandOptions?.name }) : null;
     activitiesResponse = requiredCalls.includes('activities') ? await server.getActivities({ includeCurrent: true, includePast: true }) : null;
     usageResponse = requiredCalls.includes('usage') ? await server.getUsage() : null;
   } catch (e) {
@@ -467,7 +472,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.2.3-alpha')
+  .version('0.2.4-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients', 'urbstat failed-clients')
   .example('Get options and detailed help for specific command', 'urbstat failed-clients --help')
@@ -479,6 +484,7 @@ const cli = await new Command()
   .globalType('usageFormatValues', new EnumType(configFallback.URBSTAT_USAGE_FORMAT.recognizedValues))
   .globalType('usageSortValues', new EnumType(configFallback.URBSTAT_USAGE_SORT.recognizedValues))
   .globalType('clientFormatValues', new EnumType(configFallback.URBSTAT_CLIENT_FORMAT.recognizedValues))
+  .globalOption('--ask-pass', 'Ask for connection password.')
   .action(() => {
     cli.showHelp();
     Deno.exit(0);
@@ -487,8 +493,8 @@ const cli = await new Command()
 
 cli.command('raw-status', 'Get raw response of "status" API call.\nRequired rights: status(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
   .example('Get raw response', 'raw-status')
-  .action(() => {
-    makeServerCalls(['status']).then(() => {
+  .action((commandOptions) => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       printOutput(statusResponse, 'raw');
     });
   });
@@ -496,8 +502,8 @@ cli.command('raw-status', 'Get raw response of "status" API call.\nRequired righ
 
 cli.command('raw-activities', 'Get raw response of "activities" API call.\nRequired rights: progress(all), lastacts(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
   .example('Get raw response', 'raw-activities')
-  .action(() => {
-    makeServerCalls(['activities']).then(() => {
+  .action((commandOptions) => {
+    makeServerCalls(['activities'], commandOptions).then(() => {
       printOutput(activitiesResponse, 'raw');
     });
   });
@@ -505,8 +511,8 @@ cli.command('raw-activities', 'Get raw response of "activities" API call.\nRequi
 
 cli.command('raw-usage', 'Get raw response of "usage" API call.\nRequired rights: piegraph(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
   .example('Get raw response', 'raw-usage')
-  .action(() => {
-    makeServerCalls(['usage']).then(() => {
+  .action((commandOptions) => {
+    makeServerCalls(['usage'], commandOptions).then(() => {
       printOutput(usageResponse, 'raw');
     });
   });
@@ -529,7 +535,7 @@ cli.command('all-clients', 'Get all clients.\nRequired rights: status(all).\nIf 
     default: 0
   })
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -563,7 +569,7 @@ cli
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--strict', 'Do not treat backups finished with issues as being OK.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -610,7 +616,7 @@ cli.command('failed-clients', 'Get failed clients i.e. clients with failed backu
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -664,7 +670,7 @@ cli.command('stale-clients', 'Get stale clients i.e. clients without a recent ba
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -710,7 +716,7 @@ cli.command('blank-clients', 'Get blank clients i.e. clients without any finishe
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -759,7 +765,7 @@ cli
   })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -801,7 +807,7 @@ cli.command('online-clients', 'Get online clients.\nRequired rights: status(all)
   })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -834,7 +840,7 @@ cli.command('offline-clients', 'Get offline clients.\nRequired rights: status(al
   })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -865,7 +871,7 @@ cli.command('active-clients', 'Get currently active clients.\nRequired rights: s
     default: 0
   })
   .action((commandOptions) => {
-    makeServerCalls(['status']).then(() => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       const matchingClients = [];
 
       for (const client of statusResponse) {
@@ -903,7 +909,7 @@ cli.command('current-activities', 'Get current activities.\nRequired rights: pro
     default: ''
   })
   .action((commandOptions) => {
-    makeServerCalls(['activities']).then(() => {
+    makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.current) {
@@ -943,7 +949,7 @@ cli.command('last-activities', 'Get last activities.\nRequired rights: progress(
     default: ''
   })
   .action((commandOptions) => {
-    makeServerCalls(['activities']).then(() => {
+    makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.past) {
@@ -980,7 +986,7 @@ cli.command('paused-activities', 'Get paused activities.\nRequired rights: progr
     default: ''
   })
   .action((commandOptions) => {
-    makeServerCalls(['activities']).then(() => {
+    makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.current) {
@@ -1018,7 +1024,7 @@ cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf yo
     default: ''
   })
   .action((commandOptions) => {
-    makeServerCalls(['usage']).then(() => {
+    makeServerCalls(['usage'], commandOptions).then(() => {
       const matchingUsage = [];
 
       for (const usage of usageResponse) {
@@ -1043,15 +1049,10 @@ cli.command('client', 'Get all information about one client.\nRequired rights: s
   .option('--id <Id:integer>', 'Client\'s Id Number.', { conflicts: ['name'] })
   .option('--name <name:string>', 'Client\'s Name.')
   .action(function (commandOptions) {
-    const extraArguments = {};
-    if (commandOptions?.id > 0) {
-      extraArguments.clientId = commandOptions.id;
-    } else if (commandOptions?.name?.length > 0) {
-      extraArguments.clientName = commandOptions.name;
-    }
+    // NOTE: don't use arrow function in action (need access to this)
 
-    if (Object.keys(extraArguments).length > 0) {
-      makeServerCalls(['status', 'activities', 'usage'], extraArguments).then(() => {
+    if (commandOptions?.id > 0 || commandOptions?.name?.length > 0) {
+      makeServerCalls(['status', 'activities', 'usage'], commandOptions).then(() => {
         const matchingClient = []
         matchingClient.push(statusResponse[0]);
 
