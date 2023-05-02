@@ -55,6 +55,8 @@ Retrieve the number of clients with failed image backup:
 
 ```shell
 failed-clients --skip-file --format number
+failed-clients --skip-file --format number --ask-pass
+failed-clients --skip-file --format number --user urbstat
 ```
 
 Retrieve clients with a file backup that is older than 24 hours (1440 minutes)
@@ -141,15 +143,21 @@ deno run --allow-read='.env,.env.defaults,.env.example' --allow-net=hostname:por
 - The default options are already set up in the `.env.defaults` file, please
   avoid modifying it. You can set up your own custom options in the `.env` file,
   which you can find examples of in the `.env.example` file.
+
 - The default configuration file contains the URL and credentials that are set
   by the UrBackup Server installation (localhost:55414, admin, no password). You
   can change these by setting `URBSTAT_SERVER_URL`, `URBSTAT_SERVER_USERNAME`,
   and `URBSTAT_SERVER_PASSWORD` in the `.env` file.
+
+- Username can be specified in a configuration file or passed with `--user`
+  option.
+
 - Password can be specified in a configuration file or interactively at runtime
   when `--ask-pass` option is provided.
 
 - Many options can also be adjusted during runtime by using command options. For
   more details, please refer to `urbstat <command> --help`.
+
 - Make sure to place all configuration files in the same directory as the
   downloaded binary file.
 
@@ -190,7 +198,7 @@ Get more help about a specific command and its applicable options:
   `unsafely-ignore-certificate-errors=hostname` option or supply a certificate
   with the `cert ./ca.pem` option.
 
-- You can use '--ask-pass' option if you don't want to put password in a
+- You can use `--ask-pass` option if you don't want to put password in a
   configuration file.
 
 - Make sure `.env` configuration file has strict file permissions if you put

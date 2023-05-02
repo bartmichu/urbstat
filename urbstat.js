@@ -72,7 +72,7 @@ const configData = await load({
 });
 
 
-// TODO: convert to iife
+// TODO: convert to iife?
 const getConfigValue = function (key) {
   if (key in configFallback) {
     return configData[key] ?? configFallback[key].defaultValue;
@@ -97,16 +97,12 @@ let usageResponse;
  */
 async function makeServerCalls(requiredCalls, commandOptions) {
 
-  let password;
-  if (commandOptions?.askPass === true) {
-    password = await Secret.prompt("Enter password");
-  } else {
-    password = getConfigValue('URBSTAT_SERVER_PASSWORD');
-  }
+  const username = commandOptions?.user?.length > 0 ? commandOptions?.user : getConfigValue('URBSTAT_SERVER_USERNAME');
+  const password = commandOptions?.askPass === true ? await Secret.prompt("Enter password") : getConfigValue('URBSTAT_SERVER_PASSWORD');
 
   const server = new UrbackupServer({
     url: getConfigValue('URBSTAT_SERVER_URL'),
-    username: getConfigValue('URBSTAT_SERVER_USERNAME'),
+    username: username,
     password: password
   });
 
@@ -472,7 +468,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.2.4-alpha')
+  .version('0.2.5-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
   .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
@@ -485,6 +481,7 @@ const cli = await new Command()
   .globalType('usageFormatValues', new EnumType(configFallback.URBSTAT_USAGE_FORMAT.recognizedValues))
   .globalType('usageSortValues', new EnumType(configFallback.URBSTAT_USAGE_SORT.recognizedValues))
   .globalType('clientFormatValues', new EnumType(configFallback.URBSTAT_CLIENT_FORMAT.recognizedValues))
+  .globalOption('--user <name:string>', 'User name.')
   .globalOption('--ask-pass', 'Ask for connection password.')
   .action(() => {
     cli.showHelp();
