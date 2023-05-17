@@ -205,9 +205,9 @@ Get more help about a specific command and its applicable options:
   your password there.
 
 - `urbstat` binary is compiled with
-  `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env`
+  `--unstable --allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env`
   flags. `urbstat-notls` binary is compiled with
-  `--allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env --unsafely-ignore-certificate-errors`
+  `--unstable --allow-read='.env,.env.defaults,.env.example' --allow-net --allow-env --unsafely-ignore-certificate-errors`
   flags.
 
 - In some scenarios you may want to download and examine the source script, set
