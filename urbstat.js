@@ -205,7 +205,9 @@ const normalizeClient = function (client, format) {
 const normalizeActivity = function (activity, last, format) {
   if (format === 'raw') {
     return activity;
-  } if (last === true) {
+  }
+
+  if (last === true) {
     return (function ({ clientid, name, id, duration, size_bytes, backuptime }) {
       return ({
         'Activity Id': id,
@@ -528,8 +530,8 @@ const processMatchingData = function (data, type, commandOptions) {
           break;
       }
     }
-  })
-}
+  });
+};
 
 
 /**
@@ -537,7 +539,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.4.0-alpha')
+  .version('0.4.1-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
   .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
@@ -1222,7 +1224,7 @@ cli.command('client', 'Get all information about one client.\nRequired rights: s
 
     if (commandOptions?.id > 0 || commandOptions?.name?.length > 0) {
       makeServerCalls(['status', 'activities', 'usage'], commandOptions).then(() => {
-        const matchingClient = []
+        const matchingClient = [];
         matchingClient.push(statusResponse[0]);
 
         if (typeof matchingClient[0] !== 'undefined' && matchingClient[0]?.id > 0) {
