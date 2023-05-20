@@ -9,6 +9,7 @@ import ms from 'ms/';
 
 /**
  * Hard-coded configuration values used as a fallback when not found in config files.
+ * @type {Object}
  */
 const configFallback = {
   URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
@@ -55,6 +56,7 @@ const configFallback = {
 
 /**
  * Common font and style definitions.
+ * @type {Object}
  */
 const cliTheme = {
   error: colors.bold.red,
@@ -65,6 +67,7 @@ const cliTheme = {
 
 /**
  * Configuration data loaded from '.env' and '.env.defaults' files.
+ * @type {Promise<Object>}
  */
 const configData = await load({
   export: false,
@@ -73,6 +76,11 @@ const configData = await load({
 
 
 // TODO: convert to iife?
+/**
+ * Get the configuration value for the specified key.
+ * @param {string} key - The configuration key.
+ * @returns {*} The configuration value.
+ */
 const getConfigValue = function (key) {
   if (key in configFallback) {
     return configData[key] ?? configFallback[key].defaultValue;
@@ -84,16 +92,39 @@ const getConfigValue = function (key) {
 
 
 // NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds
+/**
+ * The current epoch time in seconds.
+ * @type {number}
+ */
 const currentEpochTime = Math.round(new Date().getTime() / 1000.0);
 
 
+/**
+ * The status response from the server.
+ * @type {Object|null}
+ */
 let statusResponse;
+
+
+/**
+ * The activities response from the server.
+ * @type {Object|null}
+ */
 let activitiesResponse;
+
+
+/**
+ * The usage response from the server.
+ * @type {Object|null}
+ */
 let usageResponse;
 
 
 /**
- * Make required API calls to UrBackup Server. Exits with error code when unsuccessful.
+ * Make the required API calls to the UrBackup Server.
+ * @param {string[]} requiredCalls - The required API calls.
+ * @param {Object} commandOptions - The command options.
+ * @returns {Promise<void>}
  */
 async function makeServerCalls(requiredCalls, commandOptions) {
 
@@ -118,7 +149,10 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
 
 /**
- * Normalize client object for further use in application.
+ * Normalize client object for further use in the application.
+ * @param {Object} client - The client object to normalize.
+ * @param {string} format - The format to normalize the client object.
+ * @returns {Object} The normalized client object.
  */
 const normalizeClient = function (client, format) {
   if (format === 'raw') {
@@ -162,7 +196,11 @@ const normalizeClient = function (client, format) {
 
 
 /**
- * Normalize activity object for further use in application.
+ * Normalize activity object for further use in the application.
+ * @param {Object} activity - The activity object to normalize.
+ * @param {boolean} last - Flag indicating if it's the last activity.
+ * @param {string} format - The format to normalize the activity object.
+ * @returns {Object} The normalized activity object.
  */
 const normalizeActivity = function (activity, last, format) {
   if (format === 'raw') {
@@ -198,7 +236,10 @@ const normalizeActivity = function (activity, last, format) {
 
 
 /**
- * Normalize usage object for further use in application.
+ * Normalize usage object for further use in the application.
+ * @param {Object} element - The usage object to normalize.
+ * @param {string} format - The format to normalize the usage object.
+ * @returns {Object} The normalized usage object.
  */
 const normalizeUsage = function (element, format) {
   if (format === 'raw') {
@@ -220,6 +261,10 @@ const normalizeUsage = function (element, format) {
 /**
  * Sort clients. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
+ * @param {Array} clients - The array of client objects to sort.
+ * @param {string} format - The format used for normalization.
+ * @param {string} order - The sorting order (name, seen, file, image).
+ * @param {boolean} reverse - Flag indicating whether to sort in reverse order.
  */
 const sortClients = function (clients, format, order, reverse) {
   switch (order) {
@@ -246,6 +291,11 @@ const sortClients = function (clients, format, order, reverse) {
 /**
  * Sort activities. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
+ * @param {Array} activities - The array of activity objects to sort.
+ * @param {boolean} last - Flag indicating if it's the last activity.
+ * @param {string} format - The format used for normalization.
+ * @param {string} order - The sorting order (eta, progress, size, client, time, duration).
+ * @param {boolean} reverse - Flag indicating whether to sort in reverse order.
  */
 const sortActivities = function (activities, last, format, order, reverse) {
   switch (order) {
@@ -278,6 +328,10 @@ const sortActivities = function (activities, last, format, order, reverse) {
 /**
  * Sort usage. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
+ * @param {Array} usages - The array of usage objects to sort.
+ * @param {string} format - The format used for normalization.
+ * @param {string} order - The sorting order (name, file, image, total).
+ * @param {boolean} reverse - Flag indicating whether to sort in reverse order.
  */
 const sortUsage = function (usages, format, order, reverse) {
   switch (order) {
@@ -301,7 +355,18 @@ const sortUsage = function (usages, format, order, reverse) {
 };
 
 
+/**
+ * Print output based on the specified format.
+ * @param {Array} data - The data to print.
+ * @param {string} format - The output format (table, list, number, raw).
+ */
 const printOutput = function (data, format) {
+  /**
+   * Format bytes to human-readable string.
+   * @param {number} bytes - The number of bytes.
+   * @param {number} [decimals=2] - The number of decimal places to round to.
+   * @returns {string} The formatted string.
+   */
   const formatBytes = function (bytes, decimals = 2) {
     if (bytes === 0) {
       return '0 Bytes';
@@ -391,6 +456,10 @@ const printOutput = function (data, format) {
 
 /**
  * Process matching data i.e. normalize, sort and limit. This function changes elements of an array in place.
+ *
+ * @param {Array} data - The array of data to be processed.
+ * @param {string} type - The type of data to be processed.
+ * @param {object} commandOptions - The options for the command.
  */
 const processMatchingData = function (data, type, commandOptions) {
   data.forEach((element, index) => {
@@ -468,7 +537,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.3.1-alpha')
+  .version('0.3.2-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
   .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
@@ -489,7 +558,12 @@ const cli = await new Command()
   });
 
 
-cli.command('raw-status', 'Get raw response of "status" API call.\nRequired rights: status(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
+/**
+ * Get raw response of "status" API call.
+ * Required rights: status(all).
+ * Raw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.
+ */
+cli.command('raw-status', 'Get raw response of "status" API call.\nRequired rights: status(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.')
   .example('Get raw response', 'raw-status')
   .action((commandOptions) => {
     makeServerCalls(['status'], commandOptions).then(() => {
@@ -498,7 +572,12 @@ cli.command('raw-status', 'Get raw response of "status" API call.\nRequired righ
   });
 
 
-cli.command('raw-activities', 'Get raw response of "activities" API call.\nRequired rights: progress(all), lastacts(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
+/**
+ * Get raw response of "activities" API call.
+ * Required rights: progress(all), lastacts(all).
+ * Raw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.
+ */
+cli.command('raw-activities', 'Get raw response of "activities" API call.\nRequired rights: progress(all), lastacts(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.')
   .example('Get raw response', 'raw-activities')
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
@@ -507,7 +586,12 @@ cli.command('raw-activities', 'Get raw response of "activities" API call.\nRequi
   });
 
 
-cli.command('raw-usage', 'Get raw response of "usage" API call.\nRequired rights: piegraph(all).\nRaw responses can not be sorted, filtered etc. Property names and values are left unaltered.')
+/**
+ * Get raw response of "usage" API call.
+ * Required rights: piegraph(all).
+ * Raw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.
+ */
+cli.command('raw-usage', 'Get raw response of "usage" API call.\nRequired rights: piegraph(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.')
   .example('Get raw response', 'raw-usage')
   .action((commandOptions) => {
     makeServerCalls(['usage'], commandOptions).then(() => {
@@ -516,6 +600,13 @@ cli.command('raw-usage', 'Get raw response of "usage" API call.\nRequired rights
   });
 
 
+/**
+ * Retrieves all clients.
+ * Required rights: status(all).
+ * If you specify "raw" format, the output cannot be sorted or filtered,
+ * and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli.command('all-clients', 'Get all clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get all clients, use default options', 'all-clients')
   .example('Get the total number of all clients', 'all-clients --format "number"')
@@ -546,6 +637,14 @@ cli.command('all-clients', 'Get all clients.\nRequired rights: status(all).\nIf 
   });
 
 
+/**
+ * Retrieves OK clients, i.e., clients with OK backup status.
+ * Backups finished with issues are treated as OK by default.
+ * Required rights: status(all).
+ * If you specify "raw" format, the output cannot be sorted or filtered,
+ * and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli
   .command('ok-clients', 'Get OK clients i.e. clients with OK backup status.\nBackups finished with issues are treated as OK by default.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get OK clients, use default options', 'ok-clients')
@@ -594,6 +693,12 @@ cli
   });
 
 
+/**
+ * Get failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.
+ * Required rights: status(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli.command('failed-clients', 'Get failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get FAILED clients, use default options', 'failed-clients')
   .example('Get the total number of FAILED clients', 'failed-clients --format "number"')
@@ -639,6 +744,12 @@ cli.command('failed-clients', 'Get failed clients i.e. clients with failed backu
   });
 
 
+/**
+ * Get stale clients, i.e. clients without a recent backup as configured in urbstat.
+ * Required rights: status(all).
+ * If you specify "raw" format then output cannot be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.
+ */
 cli.command('stale-clients', 'Get stale clients i.e. clients without a recent backup as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.')
   .example('Get STALE clients, use default options', 'stale-clients')
   .example('Get the total number of STALE clients', 'stale-clients --format "number"')
@@ -695,6 +806,12 @@ cli.command('stale-clients', 'Get stale clients i.e. clients without a recent ba
   });
 
 
+/**
+ * Get blank clients i.e. clients without any finished backups.
+ * Required rights: status(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli.command('blank-clients', 'Get blank clients i.e. clients without any finished backups.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get BLANK clients, use default options', 'blank-clients')
   .example('Get the total number of BLANK clients', 'blank-clients --format "number"')
@@ -739,6 +856,12 @@ cli.command('blank-clients', 'Get blank clients i.e. clients without any finishe
   });
 
 
+/**
+ * Get void clients i.e. clients not seen for a long time as configured in urbstat.
+ * Required rights: status(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.
+ */
 cli
   .command('void-clients', 'Get void clients i.e. clients not seen for a long time as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.')
   .example('Get VOID clients, use default options', 'void-clients')
@@ -787,6 +910,12 @@ cli
   });
 
 
+/**
+ * Get online clients.
+ * Required rights: status(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli.command('online-clients', 'Get online clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get ONLINE clients, use default options', 'online-clients')
   .example('Get the total number of ONLINE clients', 'online-clients --format "number"')
@@ -820,6 +949,12 @@ cli.command('online-clients', 'Get online clients.\nRequired rights: status(all)
   });
 
 
+/**
+ * Get offline clients.
+ * Required rights: status(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli.command('offline-clients', 'Get offline clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get OFFLINE clients, use default options', 'offline-clients')
   .example('Get the total number of OFFLINE clients', 'offline-clients --format "number"')
@@ -853,6 +988,12 @@ cli.command('offline-clients', 'Get offline clients.\nRequired rights: status(al
   });
 
 
+/**
+ * Get currently active clients.
+ * Required rights: status(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
+ */
 cli.command('active-clients', 'Get currently active clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.')
   .example('Get ACTIVE clients, use default options', 'active-clients')
   .example('Get the total number of ACTIVE clients', 'active-clients --format "number"')
@@ -884,6 +1025,12 @@ cli.command('active-clients', 'Get currently active clients.\nRequired rights: s
   });
 
 
+/**
+ * Get current activities.
+ * Required rights: progress(all), lastacts(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.
+ */
 cli.command('current-activities', 'Get current activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.')
   .example('Get CURRENT activities, use default options', 'current-activities')
   .example('Get the total number of CURRENT activities', 'current-activities --format "number"')
@@ -926,6 +1073,12 @@ cli.command('current-activities', 'Get current activities.\nRequired rights: pro
   });
 
 
+/**
+ * Get last activities.
+ * Required rights: progress(all), lastacts(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.
+ */
 cli.command('last-activities', 'Get last activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.')
   .example('Get LAST activities, use default options', 'last-activities')
   .example('Get the total number of LAST activities', 'last-activities --format "number"')
@@ -964,6 +1117,12 @@ cli.command('last-activities', 'Get last activities.\nRequired rights: progress(
   });
 
 
+/**
+ * Get paused activities.
+ * Required rights: progress(all), lastacts(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.
+ */
 cli.command('paused-activities', 'Get paused activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.')
   .example('Get PAUSED activities, use default options', 'paused-activities')
   .example('Get the total number of PAUSED activities', 'paused-activities --format "number"')
@@ -1003,6 +1162,12 @@ cli.command('paused-activities', 'Get paused activities.\nRequired rights: progr
   });
 
 
+/**
+ * Get storage usage.
+ * Required rights: piegraph(all).
+ * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_USAGE_FORMAT, URBSTAT_USAGE_SORT, URBSTAT_LOCALE.
+ */
 cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_USAGE_FORMAT, URBSTAT_USAGE_SORT, URBSTAT_LOCALE.')
   .example('Get storage usage, use default options', 'usage')
   .example('Get a sorted table', 'usage --format "table" --sort "name"')
@@ -1039,6 +1204,12 @@ cli.command('usage', 'Get storage usage.\nRequired rights: piegraph(all).\nIf yo
   });
 
 
+/**
+ * Get all information about one client.
+ * Required rights: status(all), progress(all), lastacts(all).
+ * If you specify "raw" format then property names/values are left unaltered.
+ * Default options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.
+ */
 cli.command('client', 'Get all information about one client.\nRequired rights: status(all), progress(all), lastacts(all).\nIf you specify "raw" format then property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.')
   .example('Get all info about "office" client', 'client --name "office"')
   .option('--format <format:clientFormatValues>', 'Change the output format.', {
