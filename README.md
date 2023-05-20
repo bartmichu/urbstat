@@ -178,6 +178,134 @@ Get more help about a specific command and its applicable options:
 ./urbstat <command> --help
 ```
 
+### Global Options
+
+```bash
+-h, --help             - Show this help.
+-V, --version          - Show the version number for this program.
+--user         <name>  - User name.
+--ask-pass             - Ask for connection password.
+```
+
+### Commands
+
+- **raw-status**
+
+  Get raw response of "status" API call. Required rights: `status(all)`. Raw
+  responses cannot be sorted, filtered, etc. Property names and values are left
+  unaltered.
+
+- **raw-activities**
+
+  Get raw response of "activities" API call. Required rights: `progress(all)`,
+  `lastacts(all)`. Raw responses cannot be sorted, filtered, etc. Property names
+  and values are left unaltered.
+
+- **raw-usage**
+
+  Get raw response of "usage" API call. Required rights: `piegraph(all)`. Raw
+  responses cannot be sorted, filtered, etc. Property names and values are left
+  unaltered.
+
+- **all-clients**
+
+  Get all clients. Required rights: `status(all)`. If you specify "raw" format
+  then output can not be sorted or filtered and property names/values are left
+  unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
+- **ok-clients**
+
+  Get OK clients i.e. clients with OK backup status. Backups finished with
+  issues are treated as OK by default. Required rights: `status(all)`. If you
+  specify "raw" format then output can not be sorted or filtered and property
+  names/values are left unaltered. Default options are configured with:
+  `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
+- **failed-clients**
+
+  Get failed clients i.e. clients with failed backup status or without a recent
+  backup as configured in UrBackup Server. Required rights: `status(all)`. If
+  you specify "raw" format then output can not be sorted or filtered and
+  property names/values are left unaltered. Default options are configured with:
+  `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
+- **stale-clients**
+
+  Get stale clients i.e. clients without a recent backup as configured in
+  urbstat. Required rights: `status(all)`. If you specify "raw" format then
+  output can not be sorted or filtered and property names/values are left
+  unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_STALE_FILE`,
+  `URBSTAT_THRESHOLD_STALE_IMAGE`.
+
+- **void-clients**
+
+  Get void clients i.e. clients not seen for a long time as configured in
+  urbstat. Required rights: `status(all)`. If you specify "raw" format then
+  output can not be sorted or filtered and property names/values are left
+  unaltered.Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_VOID_CLIENT`.
+
+- **online-clients**
+
+  Get online clients. Required rights: `status(all)`. If you specify "raw"
+  format then output can not be sorted or filtered and property names/values are
+  left unaltered.Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
+- **offline-clients**
+
+  Get offline clients. Required rights: `status(all)`. If you specify "raw"
+  format then output can not be sorted or filtered and property names/values are
+  left unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
+- **active-clients**
+
+  Get currently active clients. Required rights: `status(all)`. If you specify
+  "raw" format then output can not be sorted or filtered and property
+  names/values are left unaltered.Default options are configured with:
+  `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
+- **current-activities**
+
+  Get current activities. Required rights: `progress(all)`, `lastacts(all)`. If
+  you specify "raw" format then output can not be sorted or filtered and
+  property names/values are left unaltered. Default options are configured with:
+  `URBSTAT_ACTIVITIES_FORMAT`, `URBSTAT_ACTIVITIES_SORT_CURRENT`,
+  `URBSTAT_LOCALE`.
+
+- **last-activities**
+
+  Get last activities. Required rights: `progress(all)`, `lastacts(all)`. If you
+  specify "raw" format then output can not be sorted or filtered and property
+  names/values are left unaltered. Default options are configured with:
+  `URBSTAT_ACTIVITIES_FORMAT`, `URBSTAT_ACTIVITIES_SORT_LAST`, `URBSTAT_LOCALE`.
+
+- **paused-activities**
+
+  Get paused activities. Required rights: `progress(all)`, `lastacts(all)`. If
+  you specify "raw" format then output can not be sorted or filtered and
+  property names/values are left unaltered. Default options are configured with:
+  `URBSTAT_ACTIVITIES_FORMAT`, `URBSTAT_ACTIVITIES_SORT_CURRENT`,
+  `URBSTAT_LOCALE`.
+
+- **usage**
+
+  Get storage usage. Required rights: `piegraph(all)`. If you specify "raw"
+  format then output can not be sorted or filtered and property names/values are
+  left unaltered. Default options are configured with: `URBSTAT_USAGE_FORMAT`,
+  `URBSTAT_USAGE_SORT`, `URBSTAT_LOCALE`.
+
+- **client**
+
+  Get all information about one client. Required rights: `status(all)`,
+  `progress(all)`, `lastacts(all)`. If you specify "raw" format then property
+  names/values are left unaltered. Default options are configured with:
+  `URBSTAT_CLIENT_FORMAT`, `URBSTAT_ACTIVITIES_SORT_CURRENT`,
+  `URBSTAT_ACTIVITIES_SORT_LAST`, `URBSTAT_LOCALE`.
+
 ## Security considerations
 
 - This tool implements only a subset of the UrBackup server API. It does not
