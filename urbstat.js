@@ -513,7 +513,7 @@ const processMatchingData = function (data, type, commandOptions) {
       }
     }
 
-    if (type === 'currentActivities' || 'lastActivities') {
+    if (type === 'currentActivities' || type === 'lastActivities') {
       switch (commandOptions?.format) {
         case 'number':
           data[index] = element['Activity Id'];
@@ -537,7 +537,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.3.2-alpha')
+  .version('0.4.0-alpha')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
   .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
