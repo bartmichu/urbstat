@@ -1040,7 +1040,6 @@ cli.command('current-activities', 'Get current activities.\nRequired rights: pro
   .example('Get a sorted table, skip PAUSED activities', 'current-activities --format "table" --sort "progress" --skip-paused')
   .example('Get three activities with longest ETA', 'current-activities --format "table" --sort "eta" --max 3 --reverse')
   .example('Get CURRENT activities of selected client', 'current-activities --format "table" --sort "eta" --client "office"')
-
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT')
   })
@@ -1270,6 +1269,5 @@ cli.command('client', 'Get all information about one client.\nRequired rights: s
       Deno.exit(1);
     }
   });
-
 
 cli.parse(Deno.args);
