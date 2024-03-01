@@ -539,7 +539,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.5.0-beta')
+  .version('0.6.0-beta')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.')
   .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
   .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
