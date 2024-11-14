@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# URBSTAT Configuration File
+#
+# - Ensure the configuration file is named "urbstat.conf" and is located in
+#   the same directory as the downloaded binary file.
+#
+# - If you are not using the default installation (localhost:55414, admin, no
+#   password), you must set URBSTAT_SERVER_URL, URBSTAT_SERVER_USERNAME,
+#   and URBSTAT_SERVER_PASSWORD in the configuration file.
+#   Alternatively, username can be passed with "--user" option and password
+#   can be specified interactively at runtime when "--ask-pass" option is
+#   provided. For details, see: "urbstat --help".
+#
+# - Many settings can also be adjusted at runtime through command-line
+#   options. For more information, please refer to
+#   "urbstat <command> --help".
+#
+# - Some defaults are hard-coded as a safety measure in case they are missing
+#   from this configuration file. Values provided in the configuration file
+#   will override the hard-coded defaults.
+#
+# - Make sure configuration file has strict file permissions if you put your
+#   password in it.
+#
+# ---------------------------------------------------------------------------
+
+URBSTAT_SERVER_URL="http://127.0.0.1:55414"
+URBSTAT_SERVER_USERNAME="admin"
+URBSTAT_SERVER_PASSWORD=""
+
+## Time thresholds in minutes
+URBSTAT_THRESHOLD_STALE_FILE=7200
+URBSTAT_THRESHOLD_STALE_IMAGE=7200
+URBSTAT_THRESHOLD_VOID_CLIENT=10080
+
+URBSTAT_LOCALE="en"
+
+## Output format options for clients: table, list, number, raw
+URBSTAT_CLIENTS_FORMAT="table"
+
+## Sorting options for clients: name, seen, file, image
+URBSTAT_CLIENTS_SORT="name"
+
+## Output format options for activities: table, number, raw
+URBSTAT_ACTIVITIES_FORMAT="table"
+
+## Sorting options for current activities: client, eta, progress, size
+URBSTAT_ACTIVITIES_SORT_CURRENT="client"
+
+## Sorting options for last activities: client, time, duration, size
+URBSTAT_ACTIVITIES_SORT_LAST="time"
+
+## Output format options for usage: table, raw
+URBSTAT_USAGE_FORMAT="table"
+
+## Sorting options for usage: name, file, image, total
+URBSTAT_USAGE_SORT="total"
+
+## Output format options for client details: table, raw
+URBSTAT_CLIENT_FORMAT="table"

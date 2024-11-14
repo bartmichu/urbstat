@@ -6,3 +6,4 @@ tmp/
 temp/
 
 .env
+urbstat.conf

@@ -7,7 +7,7 @@ import ms from 'ms/';
 import UrbackupServer from './urbackup-server-lite.js';
 
 /**
- * Hard-coded configuration values used as a fallback when not found in config files.
+ * Hard-coded configuration values used as a fallback when not found in config file.
  * @type {Object}
  */
 const configFallback = {
@@ -63,12 +63,12 @@ const cliTheme = {
 };
 
 /**
- * Configuration data loaded from '.env' and '.env.defaults' files.
+ * Configuration data loaded from the configuration file.
  * @type {Promise<Object>}
  */
 const configData = await load({
+  envPath: './urbstat.conf',
   export: false,
-  allowEmptyValues: false,
 });
 
 // TODO: convert to iife?
@@ -607,9 +607,9 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.6.0-beta')
+  .version('0.10.0')
   .description(
-    'The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in .env.defaults file. You can modify them with .env configuration file.',
+    'The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in the urbstat.conf configuration file.',
   )
   .example(
     'Get failed clients, use password from configuration file',
@@ -1081,7 +1081,7 @@ cli.command(
  */
 cli.command(
   'blank-clients',
-  'Get blank clients i.e. clients without any finished backups.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Get blank clients i.e. clients without any finished backups.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get BLANK clients, use default options', 'blank-clients')
   .example(
@@ -1160,7 +1160,7 @@ cli.command(
 cli
   .command(
     'void-clients',
-    'Get void clients i.e. clients not seen for a long time as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.',
+    'Get void clients i.e. clients not seen for a long time as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.',
   )
   .example('Get VOID clients, use default options', 'void-clients')
   .example(
@@ -1253,7 +1253,7 @@ cli
  */
 cli.command(
   'online-clients',
-  'Get online clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Get online clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get ONLINE clients, use default options', 'online-clients')
   .example(
@@ -1325,7 +1325,7 @@ cli.command(
  */
 cli.command(
   'offline-clients',
-  'Get offline clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Get offline clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get OFFLINE clients, use default options', 'offline-clients')
   .example(
@@ -1397,7 +1397,7 @@ cli.command(
  */
 cli.command(
   'active-clients',
-  'Get currently active clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Get currently active clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get ACTIVE clients, use default options', 'active-clients')
   .example(
