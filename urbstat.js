@@ -1,10 +1,10 @@
-import UrbackupServer from './urbackup-server-lite.js';
-import { load } from 'std/dotenv/mod.ts';
-import { Command, EnumType } from 'cliffy/command/mod.ts';
-import { Table } from 'cliffy/table/mod.ts';
-import { colors } from 'cliffy/ansi/colors.ts';
-import { Secret } from 'cliffy/prompt/secret.ts';
+import { colors } from '@cliffy/ansi/colors';
+import { Command, EnumType } from '@cliffy/command';
+import { load } from '@std/dotenv';
+import { Secret } from '@cliffy/prompt';
+import { Table } from '@cliffy/table';
 import ms from 'ms/';
+import UrbackupServer from './urbackup-server-lite.js';
 
 
 /**
