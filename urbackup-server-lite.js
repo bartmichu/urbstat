@@ -1,6 +1,5 @@
-import { pbkdf2 } from "node:crypto";
-import { createHash } from "node:crypto";
-
+import { pbkdf2 } from 'node:crypto';
+import { createHash } from 'node:crypto';
 
 /**
  * Represents a UrBackup Server.
@@ -26,7 +25,9 @@ export default class UrbackupServer {
    * @example <caption>Connect over the network</caption>
    * const server = new UrbackupServer({ url: 'https://192.168.0.2:443', username: 'admin', password: 'secretpassword'});
    */
-  constructor({ url = 'http://localhost:55414', username = '', password = '' } = {}) {
+  constructor(
+    { url = 'http://localhost:55414', username = '', password = '' } = {},
+  ) {
     this.#url = new URL(url);
     this.#url.pathname = 'x';
     this.#username = username;
@@ -61,15 +62,17 @@ export default class UrbackupServer {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json; charset=UTF-8'
+        'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: new URLSearchParams(bodyParams)
+      body: new URLSearchParams(bodyParams),
     });
 
     if (response?.ok === true) {
       return response.json();
     } else {
-      throw new Error('Fetch request did not end normally, response was unsuccessful (status not in the range 200-299)');
+      throw new Error(
+        'Fetch request did not end normally, response was unsuccessful (status not in the range 200-299)',
+      );
     }
   }
 
@@ -95,13 +98,17 @@ export default class UrbackupServer {
       });
     }
 
-    let passwordHash = createHash('md5').update(salt + this.#password, 'utf8').digest();
+    let passwordHash = createHash('md5').update(salt + this.#password, 'utf8')
+      .digest();
     let derivedKey;
 
     if (rounds > 0) {
       derivedKey = await pbkdf2Async(passwordHash);
     }
-    passwordHash = createHash('md5').update(randomKey + (rounds > 0 ? derivedKey.toString('hex') : passwordHash), 'utf8').digest('hex');
+    passwordHash = createHash('md5').update(
+      randomKey + (rounds > 0 ? derivedKey.toString('hex') : passwordHash),
+      'utf8',
+    ).digest('hex');
 
     return passwordHash;
   }
@@ -132,7 +139,7 @@ export default class UrbackupServer {
       }
     } else {
       const saltResponse = await this.#fetchJson('salt', {
-        username: this.#username
+        username: this.#username,
       });
 
       if (typeof saltResponse?.salt === 'string') {
@@ -140,11 +147,11 @@ export default class UrbackupServer {
         const hashedPassword = await this.#hashPassword(
           saltResponse.salt,
           saltResponse.pbkdf2_rounds,
-          saltResponse.rnd
+          saltResponse.rnd,
         );
         const userLoginResponse = await this.#fetchJson('login', {
           username: this.#username,
-          password: hashedPassword
+          password: hashedPassword,
         });
 
         if (userLoginResponse?.success === true) {
@@ -177,7 +184,7 @@ export default class UrbackupServer {
 
     const defaultReturnValue = 0;
     const clients = await this.getClients({ includeRemoved: true });
-    const clientId = clients.find(client => client.name === clientName)?.id;
+    const clientId = clients.find((client) => client.name === clientName)?.id;
 
     return typeof clientId === 'undefined' ? defaultReturnValue : clientId;
   }
@@ -196,11 +203,10 @@ export default class UrbackupServer {
 
     const defaultReturnValue = '';
     const clients = await this.getClients({ includeRemoved: true });
-    const clientName = clients.find(client => client.id === clientId)?.name;
+    const clientName = clients.find((client) => client.id === clientId)?.name;
 
     return typeof clientName === 'undefined' ? defaultReturnValue : clientName;
   }
-
 
   /**
    * Retrieves server identity.
@@ -236,7 +242,9 @@ export default class UrbackupServer {
     const login = await this.#login();
 
     if (login === true) {
-      const usersResponse = await this.#fetchJson('settings', { sa: 'listusers' });
+      const usersResponse = await this.#fetchJson('settings', {
+        sa: 'listusers',
+      });
 
       if (Array.isArray(usersResponse?.users)) {
         return usersResponse.users;
@@ -272,7 +280,6 @@ export default class UrbackupServer {
     }
   }
 
-
   /**
    * Retrieves a list of clients.
    * Matches all clients by default, including clients marked for removal.
@@ -297,7 +304,9 @@ export default class UrbackupServer {
 
       if (Array.isArray(statusResponse?.status)) {
         for (const client of statusResponse.status) {
-          if (typeof groupName !== 'undefined' && groupName !== client.groupname) {
+          if (
+            typeof groupName !== 'undefined' && groupName !== client.groupname
+          ) {
             continue;
           }
 
@@ -309,7 +318,7 @@ export default class UrbackupServer {
             id: client.id,
             name: client.name,
             group: client.groupname,
-            deletePending: client.delete_pending
+            deletePending: client.delete_pending,
           });
         }
 
@@ -321,7 +330,6 @@ export default class UrbackupServer {
       throw new Error('Login failed: unknown reason');
     }
   }
-
 
   /**
    * Retrieves a list of client discovery hints, also known as extra clients.
@@ -378,7 +386,7 @@ export default class UrbackupServer {
       const clientIds = [];
       const allClients = await this.getClients({ includeRemoved: true });
 
-      if (allClients.some(client => typeof client.id === 'undefined')) {
+      if (allClients.some((client) => typeof client.id === 'undefined')) {
         throw new Error('API response error: missing values');
       }
 
@@ -395,7 +403,7 @@ export default class UrbackupServer {
         }
       } else {
         // need to make sure that given clientId really exists bacause 'clientsettings' API call returns settings even when called with invalid ID
-        if (allClients.some(client => client.id === clientId)) {
+        if (allClients.some((client) => client.id === clientId)) {
           clientIds.push(clientId);
         }
       }
@@ -403,7 +411,7 @@ export default class UrbackupServer {
       for (const id of clientIds) {
         const settingsResponse = await this.#fetchJson('settings', {
           sa: 'clientsettings',
-          t_clientid: id
+          t_clientid: id,
         });
 
         if (typeof settingsResponse?.settings === 'object') {
@@ -432,7 +440,10 @@ export default class UrbackupServer {
    * server.getClientAuthkey({clientId: 3}).then(data => console.log(data));
    */
   async getClientAuthkey({ clientId, clientName } = {}) {
-    if ((typeof clientId === 'undefined' && typeof clientName === 'undefined') || clientId <= 0) {
+    if (
+      (typeof clientId === 'undefined' && typeof clientName === 'undefined') ||
+      clientId <= 0
+    ) {
       throw new Error('API call error: missing or invalid parameters');
     }
 
@@ -445,7 +456,11 @@ export default class UrbackupServer {
     const login = await this.#login();
 
     if (login === true) {
-      const clientSettings = await this.getClientSettings(typeof clientId === 'undefined' ? { clientName: clientName } : { clientId: clientId });
+      const clientSettings = await this.getClientSettings(
+        typeof clientId === 'undefined'
+          ? { clientName: clientName }
+          : { clientId: clientId },
+      );
 
       if (Array.isArray(clientSettings)) {
         if (clientSettings.length > 0) {
@@ -494,21 +509,28 @@ export default class UrbackupServer {
       const statusResponse = await this.#fetchJson('status');
 
       if (Array.isArray(statusResponse?.status)) {
-        if (typeof clientId === 'undefined' && typeof clientName === 'undefined') {
+        if (
+          typeof clientId === 'undefined' && typeof clientName === 'undefined'
+        ) {
           if (includeRemoved === false) {
-            return statusResponse.status.filter(client =>
+            return statusResponse.status.filter((client) =>
               client.delete_pending !== '1'
             );
           } else {
             return statusResponse.status;
           }
         } else {
-          const clientStatus = statusResponse.status.find(client =>
-            typeof clientId !== 'undefined' ? client.id === clientId : client.name === clientName
+          const clientStatus = statusResponse.status.find((client) =>
+            typeof clientId !== 'undefined'
+              ? client.id === clientId
+              : client.name === clientName
           );
 
           if (typeof clientStatus !== 'undefined') {
-            return (includeRemoved === false && clientStatus.delete_pending === '1') ? defaultReturnValue : [clientStatus];
+            return (includeRemoved === false &&
+                clientStatus.delete_pending === '1')
+              ? defaultReturnValue
+              : [clientStatus];
           } else {
             return defaultReturnValue;
           }
@@ -549,7 +571,9 @@ export default class UrbackupServer {
       const usageResponse = await this.#fetchJson('usage');
 
       if (Array.isArray(usageResponse?.usage)) {
-        if (typeof clientId === 'undefined' && typeof clientName === 'undefined') {
+        if (
+          typeof clientId === 'undefined' && typeof clientName === 'undefined'
+        ) {
           return usageResponse.usage;
         } else {
           let mappedClientName;
@@ -557,8 +581,11 @@ export default class UrbackupServer {
             // usage response does not contain a property with client ID so translation to client name is needed
             mappedClientName = await this.#getClientName(clientId);
           }
-          return usageResponse.usage.find(client =>
-            typeof clientId !== 'undefined' ? client.name === mappedClientName : client.name === clientName) ?? defaultReturnValue;
+          return usageResponse.usage.find((client) =>
+            typeof clientId !== 'undefined'
+              ? client.name === mappedClientName
+              : client.name === clientName
+          ) ?? defaultReturnValue;
         }
       } else {
         throw new Error('API response error: missing values');
@@ -590,7 +617,9 @@ export default class UrbackupServer {
    * server.getActivities({clientName: 'laptop1', includeCurrent: true, includePast: true}).then(data => console.log(data));
    * server.getActivities({clientId: '3', includeCurrent: true, includePast: true}).then(data => console.log(data));
    */
-  async getActivities({ clientId, clientName, includeCurrent = true, includePast = false } = {}) {
+  async getActivities(
+    { clientId, clientName, includeCurrent = true, includePast = false } = {},
+  ) {
     const returnValue = { current: [], past: [] };
 
     if (clientName === '') {
@@ -606,22 +635,35 @@ export default class UrbackupServer {
     if (login === true) {
       const activitiesResponse = await this.#fetchJson('progress');
 
-      if (Array.isArray(activitiesResponse?.progress) && Array.isArray(activitiesResponse?.lastacts)) {
+      if (
+        Array.isArray(activitiesResponse?.progress) &&
+        Array.isArray(activitiesResponse?.lastacts)
+      ) {
         if (includeCurrent === true) {
-          if (typeof clientId === 'undefined' && typeof clientName === 'undefined') {
+          if (
+            typeof clientId === 'undefined' && typeof clientName === 'undefined'
+          ) {
             returnValue.current = activitiesResponse.progress;
           } else {
-            returnValue.current = activitiesResponse.progress.filter(activity =>
-              typeof clientId !== 'undefined' ? activity.clientid === clientId : activity.name === clientName);
+            returnValue.current = activitiesResponse.progress.filter(
+              (activity) =>
+                typeof clientId !== 'undefined'
+                  ? activity.clientid === clientId
+                  : activity.name === clientName,
+            );
           }
         }
 
         if (includePast === true) {
-          if (typeof clientId === 'undefined' && typeof clientName === 'undefined') {
+          if (
+            typeof clientId === 'undefined' && typeof clientName === 'undefined'
+          ) {
             returnValue.past = activitiesResponse.lastacts;
           } else {
-            returnValue.past = activitiesResponse.lastacts.filter(activity =>
-              typeof clientId !== 'undefined' ? activity.clientid === clientId : activity.name === clientName
+            returnValue.past = activitiesResponse.lastacts.filter((activity) =>
+              typeof clientId !== 'undefined'
+                ? activity.clientid === clientId
+                : activity.name === clientName
             );
           }
         }
@@ -653,8 +695,19 @@ export default class UrbackupServer {
    * @example <caption>Get file backups for a specific client</caption>
    * server.getBackups({clientName: 'laptop1', includeImageBackups: false}).then(data => console.log(data));
    */
-  async getBackups({ clientId, clientName, includeFileBackups = true, includeImageBackups = true } = {},) {
-    if ((typeof clientId === 'undefined' && typeof clientName === 'undefined') || clientId <= 0 || (includeFileBackups === false && includeImageBackups === false)) {
+  async getBackups(
+    {
+      clientId,
+      clientName,
+      includeFileBackups = true,
+      includeImageBackups = true,
+    } = {},
+  ) {
+    if (
+      (typeof clientId === 'undefined' && typeof clientName === 'undefined') ||
+      clientId <= 0 ||
+      (includeFileBackups === false && includeImageBackups === false)
+    ) {
       throw new Error('API call error: missing or invalid parameters');
     }
 
@@ -669,17 +722,25 @@ export default class UrbackupServer {
     if (login === true) {
       let mappedClientId;
 
-      if (typeof clientId === 'undefined' && typeof clientName !== 'undefined') {
+      if (
+        typeof clientId === 'undefined' && typeof clientName !== 'undefined'
+      ) {
         mappedClientId = await this.#getClientId(clientName);
       }
 
-      if ((typeof clientId !== 'undefined' && clientId > 0) || (typeof mappedClientId !== 'undefined' && mappedClientId > 0)) {
+      if (
+        (typeof clientId !== 'undefined' && clientId > 0) ||
+        (typeof mappedClientId !== 'undefined' && mappedClientId > 0)
+      ) {
         const backupsResponse = await this.#fetchJson('backups', {
           sa: 'backups',
           clientid: clientId ?? mappedClientId,
         });
 
-        if (Array.isArray(backupsResponse?.backup_images) && Array.isArray(backupsResponse?.backups)) {
+        if (
+          Array.isArray(backupsResponse?.backup_images) &&
+          Array.isArray(backupsResponse?.backups)
+        ) {
           if (includeFileBackups === true) {
             returnValue.file = backupsResponse.backups;
           }
@@ -732,7 +793,9 @@ export default class UrbackupServer {
     if (login === true) {
       let mappedClientId;
 
-      if (typeof clientId === 'undefined' && typeof clientName !== 'undefined') {
+      if (
+        typeof clientId === 'undefined' && typeof clientName !== 'undefined'
+      ) {
         mappedClientId = await this.#getClientId(clientName);
       }
 
@@ -744,7 +807,7 @@ export default class UrbackupServer {
       // TODO: Use semaphore to prevent race condition with this.#lastLogId
       const logResponse = await this.#fetchJson('livelog', {
         clientid: clientId ?? mappedClientId ?? 0,
-        lastid: recentOnly === false ? 0 : this.#lastLogId.get(clientId)
+        lastid: recentOnly === false ? 0 : this.#lastLogId.get(clientId),
       });
 
       if (Array.isArray(logResponse.logdata)) {
@@ -775,7 +838,9 @@ export default class UrbackupServer {
     const login = await this.#login();
 
     if (login === true) {
-      const settingsResponse = await this.#fetchJson('settings', { sa: 'general' });
+      const settingsResponse = await this.#fetchJson('settings', {
+        sa: 'general',
+      });
 
       if (typeof settingsResponse?.settings === 'object') {
         return settingsResponse.settings;
