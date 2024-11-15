@@ -1,5 +1,8 @@
 # URBSTAT
 
+**Note: Starting from version 0.10.0, the configuration file name has been
+changed from ".env" to "urbstat.conf".**
+
 The missing command-line tool for UrBackup Server. It provides valuable insights
 into the utilization of data, clients' status and activities, and helps
 administrator to identify, troubleshoot and resolve issues that may arise within
@@ -57,6 +60,10 @@ Please keep in mind that this demo may represent an older version of `urbstat`
 with different command names and options.
 
 ## Command examples
+
+The examples are detailed and show multiple options with their values. In
+practice, you can set these values as defaults in the configuration file to make
+the commands much shorter.
 
 Retrieve the number of clients with failed image backup:
 
@@ -342,8 +349,8 @@ Get more help about a specific command and its applicable options:
 
 These third-party modules are utilized by `urbstat`:
 
-- Cliffy https://cliffy.io
-- ms https://github.com/vercel/ms
+- Cliffy <https://cliffy.io>
+- ms <https://github.com/vercel/ms>
 
 ## License
 
