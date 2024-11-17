@@ -3,58 +3,70 @@ import { Command, EnumType } from '@cliffy/command';
 import { load } from '@std/dotenv';
 import { Secret } from '@cliffy/prompt';
 import { Table } from '@cliffy/table';
-import ms from 'ms/';
-import UrbackupServer from './urbackup-server-lite.js';
+import { UrbackupServer } from 'urbackup-server-api';
+import ms from 'ms';
 
 /**
  * Hard-coded configuration values used as a fallback when not found in config file.
- * @type {Object}
  */
 const configFallback = {
-  URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
-  URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
-  URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
-  URBSTAT_THRESHOLD_STALE_FILE: { defaultValue: 7200 },
-  URBSTAT_THRESHOLD_STALE_IMAGE: { defaultValue: 7200 },
-  URBSTAT_THRESHOLD_VOID_CLIENT: { defaultValue: 10080 },
-  URBSTAT_LOCALE: { defaultValue: 'en' },
+  URBSTAT_SERVER_URL: {
+    defaultValue: 'http://127.0.0.1:55414',
+  },
+  URBSTAT_SERVER_USERNAME: {
+    defaultValue: 'admin',
+  },
+  URBSTAT_SERVER_PASSWORD: {
+    defaultValue: '',
+  },
+  URBSTAT_THRESHOLD_STALE_FILE: {
+    defaultValue: 7200,
+  },
+  URBSTAT_THRESHOLD_STALE_IMAGE: {
+    defaultValue: 7200,
+  },
+  URBSTAT_THRESHOLD_VOID_CLIENT: {
+    defaultValue: 10080,
+  },
+  URBSTAT_LOCALE: {
+    defaultValue: 'en',
+  },
   URBSTAT_CLIENTS_FORMAT: {
     defaultValue: 'table',
-    recognizedValues: ['table', 'list', 'number', 'raw'],
+    acceptedValues: ['table', 'list', 'number', 'raw'],
   },
   URBSTAT_CLIENTS_SORT: {
     defaultValue: 'name',
-    recognizedValues: ['name', 'seen', 'file', 'image'],
+    acceptedValues: ['name', 'seen', 'file', 'image'],
   },
   URBSTAT_ACTIVITIES_FORMAT: {
     defaultValue: 'table',
-    recognizedValues: ['table', 'number', 'raw'],
+    acceptedValues: ['table', 'number', 'raw'],
   },
   URBSTAT_ACTIVITIES_SORT_CURRENT: {
     defaultValue: 'client',
-    recognizedValues: ['client', 'eta', 'progress', 'size'],
+    acceptedValues: ['client', 'eta', 'progress', 'size'],
   },
   URBSTAT_ACTIVITIES_SORT_LAST: {
     defaultValue: 'time',
-    recognizedValues: ['client', 'time', 'duration', 'size'],
+    acceptedValues: ['client', 'time', 'duration', 'size'],
   },
   URBSTAT_USAGE_FORMAT: {
     defaultValue: 'table',
-    recognizedValues: ['table', 'raw'],
+    acceptedValues: ['table', 'raw'],
   },
   URBSTAT_USAGE_SORT: {
     defaultValue: 'total',
-    recognizedValues: ['name', 'file', 'image', 'total'],
+    acceptedValues: ['name', 'file', 'image', 'total'],
   },
   URBSTAT_CLIENT_FORMAT: {
     defaultValue: 'table',
-    recognizedValues: ['table', 'raw'],
+    acceptedValues: ['table', 'raw'],
   },
 };
 
 /**
  * Common font and style definitions.
- * @type {Object}
  */
 const cliTheme = {
   error: colors.bold.red,
@@ -64,7 +76,6 @@ const cliTheme = {
 
 /**
  * Configuration data loaded from the configuration file.
- * @type {Promise<Object>}
  */
 const configData = await load({
   envPath: './urbstat.conf',
@@ -81,35 +92,75 @@ const getConfigValue = function (key) {
   if (key in configFallback) {
     return configData[key] ?? configFallback[key].defaultValue;
   } else {
-    // TODO: implement this path
-    console.debug(key);
+    return null;
   }
 };
 
 // NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds
 /**
  * The current epoch time in seconds.
- * @type {number}
  */
 const currentEpochTime = Math.round(new Date().getTime() / 1000.0);
 
 /**
  * The status response from the server.
- * @type {Object|null}
  */
 let statusResponse;
 
 /**
  * The activities response from the server.
- * @type {Object|null}
  */
 let activitiesResponse;
 
 /**
  * The usage response from the server.
- * @type {Object|null}
  */
 let usageResponse;
+
+/**
+ * The all-clients response from the server.
+ */
+let allClientsResponse;
+
+/**
+ * The ok-clients response from the server.
+ */
+let okClientsResponse;
+
+/**
+ * The failed-clients response from the server.
+ */
+let failedClientsResponse;
+
+/**
+ * The stale-clients response from the server.
+ */
+let staleClientsResponse;
+
+/**
+ * The blano-clients response from the server.
+ */
+let blankClientsResponse;
+
+/**
+ * The void-clients response from the server.
+ */
+let voidClientsResponse;
+
+/**
+ * The online-clients response from the server.
+ */
+let onlineClientsResponse;
+
+/**
+ * The offline-clients response from the server.
+ */
+let offlineClientsResponse;
+
+/**
+ * The active-clients response from the server.
+ */
+let activeClientsResponse;
 
 /**
  * Make the required API calls to the UrBackup Server.
@@ -119,8 +170,9 @@ let usageResponse;
  */
 async function makeServerCalls(requiredCalls, commandOptions) {
   const username = commandOptions?.user?.length > 0
-    ? commandOptions?.user
+    ? commandOptions.user
     : getConfigValue('URBSTAT_SERVER_USERNAME');
+
   const password = commandOptions?.askPass === true
     ? await Secret.prompt('Enter password')
     : getConfigValue('URBSTAT_SERVER_PASSWORD');
@@ -134,16 +186,81 @@ async function makeServerCalls(requiredCalls, commandOptions) {
   try {
     statusResponse = requiredCalls.includes('status')
       ? await server.getStatus({
-        includeRemoved: false,
+        includeRemoved: true,
         clientId: commandOptions?.id,
         clientName: commandOptions?.name,
       })
       : null;
+
     activitiesResponse = requiredCalls.includes('activities')
-      ? await server.getActivities({ includeCurrent: true, includePast: true })
+      ? await server.getActivities({ includeCurrent: true, includeLast: true })
       : null;
+
     usageResponse = requiredCalls.includes('usage')
       ? await server.getUsage()
+      : null;
+
+    allClientsResponse = requiredCalls.includes('all-clients')
+      ? await server.getClients({
+        includeRemoved: true,
+      })
+      : null;
+
+    okClientsResponse = requiredCalls.includes('ok-clients')
+      ? await server.getOkClients({
+        includeRemoved: false,
+        includeFileBackups: commandOptions?.skipFile !== true,
+        includeImageBackups: commandOptions?.skipImage !== true,
+        failOnFileIssues: commandOptions?.strict,
+      })
+      : null;
+
+    failedClientsResponse = requiredCalls.includes('failed-clients')
+      ? await server.getFailedClients({
+        includeRemoved: false,
+        includeBlankClients: commandOptions?.skipBlank !== true,
+        includeFileBackups: commandOptions?.skipFile !== true,
+        includeImageBackups: commandOptions?.skipImage !== true,
+        failOnFileIssues: commandOptions?.strict,
+      })
+      : null;
+
+    staleClientsResponse = requiredCalls.includes('stale-clients')
+      ? await server.getClients({
+        includeRemoved: false,
+      })
+      : null;
+
+    blankClientsResponse = requiredCalls.includes('blank-clients')
+      ? await server.getBlankClients({
+        includeRemoved: false,
+        includeFileBackups: commandOptions?.skipFile !== true,
+        includeImageBackups: commandOptions?.skipImage !== true,
+      })
+      : null;
+
+    voidClientsResponse = requiredCalls.includes('void-clients')
+      ? await server.getClients({
+        includeRemoved: false,
+      })
+      : null;
+
+    onlineClientsResponse = requiredCalls.includes('online-clients')
+      ? await server.getOnlineClients({
+        includeRemoved: false,
+      })
+      : null;
+
+    offlineClientsResponse = requiredCalls.includes('offline-clients')
+      ? await server.getOfflineClients({
+        includeRemoved: false,
+      })
+      : null;
+
+    activeClientsResponse = requiredCalls.includes('active-clients')
+      ? await server.getActiveClients({
+        includeRemoved: false,
+      })
       : null;
   } catch (e) {
     console.error(cliTheme.error(e.message));
@@ -607,7 +724,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.10.0')
+  .version('0.11.0')
   .description(
     'The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in the urbstat.conf configuration file.',
   )
@@ -625,37 +742,37 @@ const cli = await new Command()
   )
   .globalType(
     'clientsFormatValues',
-    new EnumType(configFallback.URBSTAT_CLIENTS_FORMAT.recognizedValues),
+    new EnumType(configFallback.URBSTAT_CLIENTS_FORMAT.acceptedValues),
   )
   .globalType(
     'clientsSortValues',
-    new EnumType(configFallback.URBSTAT_CLIENTS_SORT.recognizedValues),
+    new EnumType(configFallback.URBSTAT_CLIENTS_SORT.acceptedValues),
   )
   .globalType(
     'activitiesFormatValues',
-    new EnumType(configFallback.URBSTAT_ACTIVITIES_FORMAT.recognizedValues),
+    new EnumType(configFallback.URBSTAT_ACTIVITIES_FORMAT.acceptedValues),
   )
   .globalType(
     'currentActivitiesSortValues',
     new EnumType(
-      configFallback.URBSTAT_ACTIVITIES_SORT_CURRENT.recognizedValues,
+      configFallback.URBSTAT_ACTIVITIES_SORT_CURRENT.acceptedValues,
     ),
   )
   .globalType(
     'lastActivitiesSortValues',
-    new EnumType(configFallback.URBSTAT_ACTIVITIES_SORT_LAST.recognizedValues),
+    new EnumType(configFallback.URBSTAT_ACTIVITIES_SORT_LAST.acceptedValues),
   )
   .globalType(
     'usageFormatValues',
-    new EnumType(configFallback.URBSTAT_USAGE_FORMAT.recognizedValues),
+    new EnumType(configFallback.URBSTAT_USAGE_FORMAT.acceptedValues),
   )
   .globalType(
     'usageSortValues',
-    new EnumType(configFallback.URBSTAT_USAGE_SORT.recognizedValues),
+    new EnumType(configFallback.URBSTAT_USAGE_SORT.acceptedValues),
   )
   .globalType(
     'clientFormatValues',
-    new EnumType(configFallback.URBSTAT_CLIENT_FORMAT.recognizedValues),
+    new EnumType(configFallback.URBSTAT_CLIENT_FORMAT.acceptedValues),
   )
   .globalOption('--user <name:string>', 'User name.')
   .globalOption('--ask-pass', 'Ask for connection password.')
@@ -665,13 +782,13 @@ const cli = await new Command()
   });
 
 /**
- * Get raw response of "status" API call.
+ * Get raw response of "status" API call. Matches all clients, including those marked for removal.
  * Required rights: status(all).
  * Raw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.
  */
 cli.command(
   'raw-status',
-  'Get raw response of "status" API call.\nRequired rights: status(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
+  'Get raw response of "status" API call. Matches all clients, including those marked for removal.\nRequired rights: status(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-status')
   .action((commandOptions) => {
@@ -681,13 +798,13 @@ cli.command(
   });
 
 /**
- * Get raw response of "activities" API call.
+ * Get raw response of "activities" API call. Matches all clients, including those marked for removal.
  * Required rights: progress(all), lastacts(all).
  * Raw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.
  */
 cli.command(
   'raw-activities',
-  'Get raw response of "activities" API call.\nRequired rights: progress(all), lastacts(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
+  'Get raw response of "activities" API call. Matches all clients, including those marked for removal.\nRequired rights: progress(all), lastacts(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-activities')
   .action((commandOptions) => {
@@ -697,13 +814,13 @@ cli.command(
   });
 
 /**
- * Get raw response of "usage" API call.
+ * Get raw response of "usage" API call. Matches all clients, including those marked for removal.
  * Required rights: piegraph(all).
  * Raw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.
  */
 cli.command(
   'raw-usage',
-  'Get raw response of "usage" API call.\nRequired rights: piegraph(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
+  'Get raw response of "usage" API call. Matches all clients, including those marked for removal.\nRequired rights: piegraph(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-usage')
   .action((commandOptions) => {
@@ -713,7 +830,7 @@ cli.command(
   });
 
 /**
- * Retrieves all clients.
+ * Retrieves all clients, including those marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format, the output cannot be sorted or filtered,
  * and property names/values are left unaltered.
@@ -721,7 +838,7 @@ cli.command(
  */
 cli.command(
   'all-clients',
-  'Get all clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Retrieves all clients, including those marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format, the output cannot be sorted or filtered, and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get all clients, use default options', 'all-clients')
   .example(
@@ -763,10 +880,10 @@ cli.command(
     },
   )
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['all-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
+      for (const client of allClientsResponse) {
         matchingClients.push(client);
       }
 
@@ -776,7 +893,7 @@ cli.command(
   });
 
 /**
- * Retrieves OK clients, i.e., clients with OK backup status.
+ * Retrieves OK clients, i.e., clients with OK backup status. Excludes clients marked for removal.
  * Backups finished with issues are treated as OK by default.
  * Required rights: status(all).
  * If you specify "raw" format, the output cannot be sorted or filtered,
@@ -786,13 +903,13 @@ cli.command(
 cli
   .command(
     'ok-clients',
-    'Get OK clients i.e. clients with OK backup status.\nBackups finished with issues are treated as OK by default.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+    'Retrieves OK clients i.e. clients with OK backup status. Excludes clients marked for removal.\nBackups finished with issues are treated as OK by default.\nRequired rights: status(all).\nIf you specify "raw" format, the output cannot be sorted or filtered, and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
   )
   .example('Get OK clients, use default options', 'ok-clients')
   .example('Get the total number of OK clients', 'ok-clients --format "number"')
   .example('Get a sorted table', 'ok-clients --format "table" --sort "file"')
   .example(
-    'Get a sorted table, skip file BUP problems',
+    'Get a sorted table, skip file backup problems',
     'ok-clients --format "table" --sort "image" --skip-file',
   )
   .example(
@@ -830,29 +947,11 @@ cli
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--strict', 'Do not treat backups finished with issues as being OK.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['ok-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
-        if (commandOptions.skipFile !== true) {
-          if (client.file_disabled !== true && client.file_ok === true) {
-            if (
-              commandOptions?.strict !== true ||
-              (commandOptions?.strict === true &&
-                client.last_filebackup_issues === 0)
-            ) {
-              matchingClients.push(client);
-              continue;
-            }
-          }
-        }
-
-        if (commandOptions.skipImage !== true) {
-          if (client.image_disabled !== true && client.image_ok === true) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
+      for (const client of okClientsResponse) {
+        matchingClients.push(client);
       }
 
       processMatchingData(matchingClients, 'clients', commandOptions);
@@ -861,14 +960,15 @@ cli
   });
 
 /**
- * Get failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.
+ * Retrieves failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.
+ * Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
  */
 cli.command(
   'failed-clients',
-  'Get failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Retrieves failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get FAILED clients, use default options', 'failed-clients')
   .example(
@@ -880,7 +980,7 @@ cli.command(
     'failed-clients --format "table" --sort "file"',
   )
   .example(
-    'Get a sorted table, skip file BUP problems',
+    'Get a sorted table, skip file backup problems',
     'failed-clients --format "table" --sort "image" --skip-file',
   )
   .example(
@@ -918,32 +1018,11 @@ cli.command(
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['failed-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
-        if (commandOptions.skipFile !== true) {
-          if (
-            (commandOptions.skipBlank !== true ||
-              (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
-            client.file_disabled !== true && client.file_ok !== true
-          ) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
-
-        if (commandOptions.skipImage !== true) {
-          if (
-            (commandOptions.skipBlank !== true ||
-              (commandOptions.skipBlank === true &&
-                client.lastbackup_image !== 0)) &&
-            client.image_disabled !== true && client.image_ok !== true
-          ) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
+      for (const client of failedClientsResponse) {
+        matchingClients.push(client);
       }
 
       processMatchingData(matchingClients, 'clients', commandOptions);
@@ -952,14 +1031,14 @@ cli.command(
   });
 
 /**
- * Get stale clients, i.e. clients without a recent backup as configured in urbstat.
+ * Retrieves stale clients, i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output cannot be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.
  */
 cli.command(
   'stale-clients',
-  'Get stale clients i.e. clients without a recent backup as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.',
+  'Retrieves stale clients i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.',
 )
   .example('Get STALE clients, use default options', 'stale-clients')
   .example(
@@ -980,11 +1059,11 @@ cli.command(
     'stale-clients --format "list" --sort "name" --reverse',
   )
   .example(
-    'Get clients with file BUP older than a day',
+    'Get clients with file backup older than a day',
     'stale-clients --format "table" --sort "name" --threshold-file 1440',
   )
   .example(
-    'Get number of clients with image BUP older than 12hrs',
+    'Get number of clients with image backup older than 12hrs',
     'stale-clients --format "number" --threshold-image 720 --skip-file',
   )
   .option(
@@ -1032,10 +1111,10 @@ cli.command(
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['stale-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
+      for (const client of staleClientsResponse) {
         if (commandOptions.skipFile !== true) {
           const timestampDifference = Math.round(
             (currentEpochTime - (client?.lastbackup ?? 0)) / 60,
@@ -1074,14 +1153,14 @@ cli.command(
   });
 
 /**
- * Get blank clients i.e. clients without any finished backups.
+ * Retrieves blank clients i.e. clients without any finished backups. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
  */
 cli.command(
   'blank-clients',
-  'Get blank clients i.e. clients without any finished backups.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Retrieves blank clients i.e. clients without any finished backups. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get BLANK clients, use default options', 'blank-clients')
   .example(
@@ -1127,23 +1206,11 @@ cli.command(
   })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['blank-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
-        if (commandOptions.skipFile !== true) {
-          if (client.file_disabled !== true && client.lastbackup === 0) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
-
-        if (commandOptions.skipImage !== true) {
-          if (client.image_disabled !== true && client.lastbackup_image === 0) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
+      for (const client of blankClientsResponse) {
+        matchingClients.push(client);
       }
 
       processMatchingData(matchingClients, 'clients', commandOptions);
@@ -1152,7 +1219,7 @@ cli.command(
   });
 
 /**
- * Get void clients i.e. clients not seen for a long time as configured in urbstat.
+ * Retrieves void clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.
@@ -1160,7 +1227,7 @@ cli.command(
 cli
   .command(
     'void-clients',
-    'Get void clients i.e. clients not seen for a long time as configured in urbstat.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.',
+    'Retrieves void clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.',
   )
   .example('Get VOID clients, use default options', 'void-clients')
   .example(
@@ -1214,10 +1281,10 @@ cli
   })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['void-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
+      for (const client of voidClientsResponse) {
         const timestampDifference = Math.round(
           (currentEpochTime - (client?.lastseen ?? 0)) / 60,
         );
@@ -1246,14 +1313,14 @@ cli
   });
 
 /**
- * Get online clients.
+ * Retrieves online clients. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
  */
 cli.command(
   'online-clients',
-  'Get online clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Retrieves online clients. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get ONLINE clients, use default options', 'online-clients')
   .example(
@@ -1299,10 +1366,10 @@ cli.command(
   )
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['online-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
+      for (const client of onlineClientsResponse) {
         if (
           (commandOptions.skipBlank !== true ||
             (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
@@ -1318,14 +1385,14 @@ cli.command(
   });
 
 /**
- * Get offline clients.
+ * Retrieves offline clients. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
  */
 cli.command(
   'offline-clients',
-  'Get offline clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Retrieves offline clients. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get OFFLINE clients, use default options', 'offline-clients')
   .example(
@@ -1371,10 +1438,10 @@ cli.command(
   )
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['offline-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
+      for (const client of offlineClientsResponse) {
         if (
           (commandOptions.skipBlank !== true ||
             (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
@@ -1390,14 +1457,14 @@ cli.command(
   });
 
 /**
- * Get currently active clients.
+ * Retrieves currently active clients. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.
  */
 cli.command(
   'active-clients',
-  'Get currently active clients.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
+  'Retrieves currently active clients. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get ACTIVE clients, use default options', 'active-clients')
   .example(
@@ -1438,13 +1505,11 @@ cli.command(
     },
   )
   .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+    makeServerCalls(['active-clients'], commandOptions).then(() => {
       const matchingClients = [];
 
-      for (const client of statusResponse) {
-        if (client.status !== 0) {
-          matchingClients.push(client);
-        }
+      for (const client of activeClientsResponse) {
+        matchingClients.push(client);
       }
 
       processMatchingData(matchingClients, 'clients', commandOptions);
@@ -1453,14 +1518,14 @@ cli.command(
   });
 
 /**
- * Get current activities.
+ * Retrieves current activities.
  * Required rights: progress(all), lastacts(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.
  */
 cli.command(
   'current-activities',
-  'Get current activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.',
+  'Retrieves current activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.',
 )
   .example('Get CURRENT activities, use default options', 'current-activities')
   .example(
@@ -1546,14 +1611,14 @@ cli.command(
   });
 
 /**
- * Get last activities.
+ * Retrieves last activities.
  * Required rights: progress(all), lastacts(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.
  */
 cli.command(
   'last-activities',
-  'Get last activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.',
+  'Retrieves last activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.',
 )
   .example('Get LAST activities, use default options', 'last-activities')
   .example(
@@ -1612,7 +1677,7 @@ cli.command(
     makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
-      for (const activity of activitiesResponse.past) {
+      for (const activity of activitiesResponse.last) {
         if (
           commandOptions.client.length > 0 &&
           activity.name !== commandOptions.client
@@ -1629,14 +1694,14 @@ cli.command(
   });
 
 /**
- * Get paused activities.
+ * Retrieves paused activities.
  * Required rights: progress(all), lastacts(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.
  */
 cli.command(
   'paused-activities',
-  'Get paused activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.',
+  'Retrieves paused activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.',
 )
   .example('Get PAUSED activities, use default options', 'paused-activities')
   .example(
@@ -1714,14 +1779,14 @@ cli.command(
   });
 
 /**
- * Get storage usage.
+ * Retrieves storage usage.
  * Required rights: piegraph(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
  * Default options are configured with: URBSTAT_USAGE_FORMAT, URBSTAT_USAGE_SORT, URBSTAT_LOCALE.
  */
 cli.command(
   'usage',
-  'Get storage usage.\nRequired rights: piegraph(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_USAGE_FORMAT, URBSTAT_USAGE_SORT, URBSTAT_LOCALE.',
+  'Retrieves storage usage.\nRequired rights: piegraph(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_USAGE_FORMAT, URBSTAT_USAGE_SORT, URBSTAT_LOCALE.',
 )
   .example('Get storage usage, use default options', 'usage')
   .example('Get a sorted table', 'usage --format "table" --sort "name"')
@@ -1778,14 +1843,14 @@ cli.command(
   });
 
 /**
- * Get all information about one client.
+ * Retrieves all information about one client.
  * Required rights: status(all), progress(all), lastacts(all).
  * If you specify "raw" format then property names/values are left unaltered.
  * Default options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.
  */
 cli.command(
   'client',
-  'Get all information about one client.\nRequired rights: status(all), progress(all), lastacts(all).\nIf you specify "raw" format then property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.',
+  'Retrieves all information about one client.\nRequired rights: status(all), progress(all), lastacts(all).\nIf you specify "raw" format then property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENT_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.',
 )
   .example('Get all info about "office" client', 'client --name "office"')
   .option('--format <format:clientFormatValues>', 'Change the output format.', {
@@ -1810,7 +1875,7 @@ cli.command(
             const matchingCurrentActivities = activitiesResponse.current.filter(
               (activity) => activity.clientid === matchingClientId,
             );
-            const matchingLastActivities = activitiesResponse.past.filter(
+            const matchingLastActivities = activitiesResponse.last.filter(
               (activity) => activity.clientid === matchingClientId,
             );
             const matchingUsage = [];

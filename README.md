@@ -1,8 +1,5 @@
 # URBSTAT
 
-**Note: Starting from version 0.10.0, the configuration file name has been
-changed from ".env" to "urbstat.conf".**
-
 The missing command-line tool for UrBackup Server. It provides valuable insights
 into the utilization of data, clients' status and activities, and helps
 administrator to identify, troubleshoot and resolve issues that may arise within
@@ -140,7 +137,7 @@ simply run the application:
 Alternatively, you can run source file with Deno:
 
 ```shell
-deno run --allow-read='urbstat.conf' --allow-net=hostname:port urbstat.js
+deno run --allow-read='urbstat.conf' --allow-net=hostname:port --allow-env='NODE_EXTRA_CA_CERTS' urbstat.js
 
 deno run --allow-read='urbstat.conf' --allow-net=hostname:port --unsafely-ignore-certificate-errors=hostname urbstat.js
 ```
@@ -170,6 +167,25 @@ deno run --allow-read='urbstat.conf' --allow-net=hostname:port --unsafely-ignore
 
 - Make sure configuration file has strict file permissions if you put your
   password in it.
+
+## CHANGELOG
+
+This changelog starts at version `0.10.0` and includes a selection of
+significant changes.
+
+### Breaking Changes
+
+- 0.10.0
+  - The configuration file name has been changed from `.env` to `urbstat.conf`.
+
+### Notable Changes
+
+- 0.11.0
+  - Now that deno compile supports npm modules, I switched to using my
+    `urbackup-server-api` Node.js library.
+
+- 0.10.0
+  - The configuration file name has been changed from `.env` to `urbstat.conf`.
 
 ## Documentation
 
@@ -338,7 +354,8 @@ Get more help about a specific command and its applicable options:
 - Make sure configuration file has strict file permissions if you put your
   password in it.
 
-- `urbstat` binary is compiled with `--allow-read='urbstat.conf' --allow-net`
+- `urbstat` binary is compiled with
+  `--allow-read='urbstat.conf' --allow-net --allow-env='NODE_EXTRA_CA_CERTS'`
   flags.
 
 - In some scenarios you may want to download and examine the source script, set
@@ -346,6 +363,10 @@ Get more help about a specific command and its applicable options:
   manually.
 
 ## Dependencies
+
+These first-party modules are utilized by `urbstat`:
+
+- urbackup-server-api <https://github.com/bartmichu/node-urbackup-server-api>
 
 These third-party modules are utilized by `urbstat`:
 
