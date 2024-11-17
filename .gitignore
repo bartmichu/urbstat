@@ -1,4 +1,5 @@
 .vscode/
 .env
 urbstat
+urbstat.exe
 urbstat.conf
