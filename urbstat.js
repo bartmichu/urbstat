@@ -10,77 +10,32 @@ import ms from 'ms';
  * Hard-coded configuration values used as a fallback when not found in config file.
  */
 const configFallback = {
-  URBSTAT_SERVER_URL: {
-    defaultValue: 'http://127.0.0.1:55414',
-  },
-  URBSTAT_SERVER_USERNAME: {
-    defaultValue: 'admin',
-  },
-  URBSTAT_SERVER_PASSWORD: {
-    defaultValue: '',
-  },
-  URBSTAT_THRESHOLD_STALE_FILE: {
-    defaultValue: 7200,
-  },
-  URBSTAT_THRESHOLD_STALE_IMAGE: {
-    defaultValue: 7200,
-  },
-  URBSTAT_THRESHOLD_VOID_CLIENT: {
-    defaultValue: 10080,
-  },
-  URBSTAT_LOCALE: {
-    defaultValue: 'en',
-  },
-  URBSTAT_CLIENTS_FORMAT: {
-    defaultValue: 'table',
-    acceptedValues: ['table', 'list', 'number', 'raw'],
-  },
-  URBSTAT_CLIENTS_SORT: {
-    defaultValue: 'name',
-    acceptedValues: ['name', 'seen', 'file', 'image'],
-  },
-  URBSTAT_ACTIVITIES_FORMAT: {
-    defaultValue: 'table',
-    acceptedValues: ['table', 'number', 'raw'],
-  },
-  URBSTAT_ACTIVITIES_SORT_CURRENT: {
-    defaultValue: 'client',
-    acceptedValues: ['client', 'eta', 'progress', 'size'],
-  },
-  URBSTAT_ACTIVITIES_SORT_LAST: {
-    defaultValue: 'time',
-    acceptedValues: ['client', 'time', 'duration', 'size'],
-  },
-  URBSTAT_USAGE_FORMAT: {
-    defaultValue: 'table',
-    acceptedValues: ['table', 'raw'],
-  },
-  URBSTAT_USAGE_SORT: {
-    defaultValue: 'total',
-    acceptedValues: ['name', 'file', 'image', 'total'],
-  },
-  URBSTAT_CLIENT_FORMAT: {
-    defaultValue: 'table',
-    acceptedValues: ['table', 'raw'],
-  },
+  URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
+  URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
+  URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
+  URBSTAT_THRESHOLD_STALE_FILE: { defaultValue: 7200 },
+  URBSTAT_THRESHOLD_STALE_IMAGE: { defaultValue: 7200 },
+  URBSTAT_THRESHOLD_VOID_CLIENT: { defaultValue: 10080 },
+  URBSTAT_LOCALE: { defaultValue: 'en' },
+  URBSTAT_CLIENTS_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'list', 'number', 'raw'] },
+  URBSTAT_CLIENTS_SORT: { defaultValue: 'name', acceptedValues: ['name', 'seen', 'file', 'image'] },
+  URBSTAT_ACTIVITIES_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'number', 'raw'] },
+  URBSTAT_ACTIVITIES_SORT_CURRENT: { defaultValue: 'client', acceptedValues: ['client', 'eta', 'progress', 'size'] },
+  URBSTAT_ACTIVITIES_SORT_LAST: { defaultValue: 'time', acceptedValues: ['client', 'time', 'duration', 'size'] },
+  URBSTAT_USAGE_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'raw'] },
+  URBSTAT_USAGE_SORT: { defaultValue: 'total', acceptedValues: ['name', 'file', 'image', 'total'] },
+  URBSTAT_CLIENT_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'raw'] },
 };
 
 /**
  * Common font and style definitions.
  */
-const cliTheme = {
-  error: colors.bold.red,
-  warning: colors.yellow,
-  information: colors.blue,
-};
+const cliTheme = { error: colors.bold.red, warning: colors.yellow, information: colors.blue };
 
 /**
  * Configuration data loaded from the configuration file.
  */
-const configData = await load({
-  envPath: './urbstat.conf',
-  export: false,
-});
+const configData = await load({ envPath: './urbstat.conf', export: false });
 
 // TODO: convert to iife?
 /**
@@ -96,7 +51,7 @@ const getConfigValue = function (key) {
   }
 };
 
-// NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds
+// NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds.
 /**
  * The current epoch time in seconds.
  */
@@ -169,9 +124,7 @@ let activeClientsResponse;
  * @returns {Promise<void>}
  */
 async function makeServerCalls(requiredCalls, commandOptions) {
-  const username = commandOptions?.user?.length > 0
-    ? commandOptions.user
-    : getConfigValue('URBSTAT_SERVER_USERNAME');
+  const username = commandOptions?.user?.length > 0 ? commandOptions.user : getConfigValue('URBSTAT_SERVER_USERNAME');
 
   const password = commandOptions?.askPass === true
     ? await Secret.prompt('Enter password')
@@ -193,12 +146,13 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       : null;
 
     activitiesResponse = requiredCalls.includes('activities')
-      ? await server.getActivities({ includeCurrent: true, includeLast: true })
+      ? await server.getActivities({
+        includeCurrent: true,
+        includeLast: true,
+      })
       : null;
 
-    usageResponse = requiredCalls.includes('usage')
-      ? await server.getUsage()
-      : null;
+    usageResponse = requiredCalls.includes('usage') ? await server.getUsage() : null;
 
     allClientsResponse = requiredCalls.includes('all-clients')
       ? await server.getClients({
@@ -342,9 +296,7 @@ const normalizeActivity = function (activity, last, format) {
   }
 
   if (last === true) {
-    return (function (
-      { clientid, name, id, duration, size_bytes, backuptime },
-    ) {
+    return (function ({ clientid, name, id, duration, size_bytes, backuptime }) {
       return ({
         'Activity Id': id,
         'Client Id': clientid,
@@ -355,19 +307,7 @@ const normalizeActivity = function (activity, last, format) {
       });
     })(activity);
   } else {
-    return (function (
-      {
-        clientid,
-        name,
-        action,
-        paused,
-        pcdone,
-        queue,
-        done_bytes,
-        total_bytes,
-        eta_ms,
-      },
-    ) {
+    return (function ({ clientid, name, action, paused, pcdone, queue, done_bytes, total_bytes, eta_ms }) {
       return ({
         'Client Id': clientid,
         'Client Name': name,
@@ -417,11 +357,7 @@ const sortClients = function (clients, format, order, reverse) {
   switch (order) {
     case 'name':
       clients.sort((a, b) =>
-        a['Client Name'].localeCompare(
-          b['Client Name'],
-          getConfigValue('URBSTAT_LOCALE'),
-          { sensitivity: 'base' },
-        )
+        a['Client Name'].localeCompare(b['Client Name'], getConfigValue('URBSTAT_LOCALE'), { sensitivity: 'base' })
       );
       break;
     case 'seen':
@@ -462,11 +398,7 @@ const sortActivities = function (activities, last, format, order, reverse) {
       break;
     case 'client':
       activities.sort((a, b) =>
-        a['Client Name'].localeCompare(
-          b['Client Name'],
-          getConfigValue('URBSTAT_LOCALE'),
-          { sensitivity: 'base' },
-        )
+        a['Client Name'].localeCompare(b['Client Name'], getConfigValue('URBSTAT_LOCALE'), { sensitivity: 'base' })
       );
       break;
     case 'time':
@@ -494,11 +426,7 @@ const sortUsage = function (usages, format, order, reverse) {
   switch (order) {
     case 'name':
       usages.sort((a, b) =>
-        a['Client Name'].localeCompare(
-          b['Client Name'],
-          getConfigValue('URBSTAT_LOCALE'),
-          { sensitivity: 'base' },
-        )
+        a['Client Name'].localeCompare(b['Client Name'], getConfigValue('URBSTAT_LOCALE'), { sensitivity: 'base' })
       );
       break;
     case 'file':
@@ -539,9 +467,8 @@ const printOutput = function (data, format) {
 
     const unitIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(kilo));
 
-    return parseFloat(
-      (bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals),
-    ) + ' ' + units[unitIndex];
+    return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) +
+      ' ' + units[unitIndex];
   };
 
   // TODO: || 'raw'?
@@ -564,9 +491,7 @@ const printOutput = function (data, format) {
             data[element][key] = ms(data[element][key] * 1000);
             break;
           case 'ETA':
-            data[element][key] = data[element][key] <= 0
-              ? 'n/a'
-              : ms(data[element][key]);
+            data[element][key] = data[element][key] <= 0 ? 'n/a' : ms(data[element][key]);
             break;
           case 'Starting Time':
           /* falls through */
@@ -578,8 +503,7 @@ const printOutput = function (data, format) {
             if (data[element][key] === 0) {
               data[element][key] = 'never';
             } else {
-              data[element][key] = new Date(data[element][key] * 1000)
-                .toLocaleString(getConfigValue('URBSTAT_LOCALE'));
+              data[element][key] = new Date(data[element][key] * 1000).toLocaleString(getConfigValue('URBSTAT_LOCALE'));
             }
             break;
           case 'Activity':
@@ -650,38 +574,16 @@ const processMatchingData = function (data, type, commandOptions) {
   if (commandOptions.format !== 'raw') {
     switch (type) {
       case 'clients':
-        sortClients(
-          data,
-          commandOptions?.format,
-          commandOptions?.sort,
-          commandOptions?.reverse,
-        );
+        sortClients(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       case 'currentActivities':
-        sortActivities(
-          data,
-          false,
-          commandOptions?.format,
-          commandOptions?.sort,
-          commandOptions?.reverse,
-        );
+        sortActivities(data, false, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       case 'lastActivities':
-        sortActivities(
-          data,
-          true,
-          commandOptions?.format,
-          commandOptions?.sort,
-          commandOptions?.reverse,
-        );
+        sortActivities(data, true, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       case 'usage':
-        sortUsage(
-          data,
-          commandOptions?.format,
-          commandOptions?.sort,
-          commandOptions?.reverse,
-        );
+        sortUsage(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       default:
         break;
@@ -724,22 +626,13 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.11.0')
+  .version('0.11.1')
   .description(
     'The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in the urbstat.conf configuration file.',
   )
-  .example(
-    'Get failed clients, use password from configuration file',
-    'urbstat failed-clients',
-  )
-  .example(
-    'Get failed clients, ask for password',
-    'urbstat failed-clients --ask-pass',
-  )
-  .example(
-    'Get options and detailed help for specific command',
-    'urbstat failed-clients --help',
-  )
+  .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
+  .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
+  .example('Get options and detailed help for specific command', 'urbstat failed-clients --help')
   .globalType(
     'clientsFormatValues',
     new EnumType(configFallback.URBSTAT_CLIENTS_FORMAT.acceptedValues),
@@ -754,9 +647,7 @@ const cli = await new Command()
   )
   .globalType(
     'currentActivitiesSortValues',
-    new EnumType(
-      configFallback.URBSTAT_ACTIVITIES_SORT_CURRENT.acceptedValues,
-    ),
+    new EnumType(configFallback.URBSTAT_ACTIVITIES_SORT_CURRENT.acceptedValues),
   )
   .globalType(
     'lastActivitiesSortValues',
@@ -841,44 +732,18 @@ cli.command(
   'Retrieves all clients, including those marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format, the output cannot be sorted or filtered, and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get all clients, use default options', 'all-clients')
-  .example(
-    'Get the total number of all clients',
-    'all-clients --format "number"',
-  )
+  .example('Get the total number of all clients', 'all-clients --format "number"')
   .example('Get a sorted table', 'all-clients --format "table" --sort "file"')
-  .example(
-    'Get reversed list',
-    'all-clients --format "list" --sort "name" --reverse',
-  )
-  .example(
-    'Get names of three of the longest-unseen clients',
-    'all-clients --format "list" --sort "seen" --max 3',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
+  .example('Get reversed list', 'all-clients --format "list" --sort "name" --reverse')
+  .example('Get names of three of the longest-unseen clients', 'all-clients --format "list" --sort "seen" --max 3')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
+  })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .action((commandOptions) => {
     makeServerCalls(['all-clients'], commandOptions).then(() => {
       const matchingClients = [];
@@ -908,42 +773,17 @@ cli
   .example('Get OK clients, use default options', 'ok-clients')
   .example('Get the total number of OK clients', 'ok-clients --format "number"')
   .example('Get a sorted table', 'ok-clients --format "table" --sort "file"')
-  .example(
-    'Get a sorted table, skip file backup problems',
-    'ok-clients --format "table" --sort "image" --skip-file',
-  )
-  .example(
-    'Get reversed list',
-    'ok-clients --format "list" --sort "name" --reverse',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option('--skip-file', 'Skip file backups when matching clients.', {
-    conflicts: ['skip-image'],
+  .example('Get a sorted table, skip file backup problems', 'ok-clients --format "table" --sort "image" --skip-file')
+  .example('Get reversed list', 'ok-clients --format "list" --sort "name" --reverse')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
   })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--strict', 'Do not treat backups finished with issues as being OK.')
   .action((commandOptions) => {
@@ -971,50 +811,22 @@ cli.command(
   'Retrieves failed clients i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get FAILED clients, use default options', 'failed-clients')
-  .example(
-    'Get the total number of FAILED clients',
-    'failed-clients --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'failed-clients --format "table" --sort "file"',
-  )
+  .example('Get the total number of FAILED clients', 'failed-clients --format "number"')
+  .example('Get a sorted table', 'failed-clients --format "table" --sort "file"')
   .example(
     'Get a sorted table, skip file backup problems',
     'failed-clients --format "table" --sort "image" --skip-file',
   )
-  .example(
-    'Get reversed list',
-    'failed-clients --format "list" --sort "name" --reverse',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option('--skip-file', 'Skip file backups when matching clients.', {
-    conflicts: ['skip-image'],
+  .example('Get reversed list', 'failed-clients --format "list" --sort "name" --reverse')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
   })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
@@ -1041,23 +853,11 @@ cli.command(
   'Retrieves stale clients i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.',
 )
   .example('Get STALE clients, use default options', 'stale-clients')
-  .example(
-    'Get the total number of STALE clients',
-    'stale-clients --format "number"',
-  )
+  .example('Get the total number of STALE clients', 'stale-clients --format "number"')
   .example('Get a sorted table', 'stale-clients --format "table" --sort "name"')
-  .example(
-    'Get a sorted table, skip BLANK clients',
-    'stale-clients --format "table" --sort "name" --skip-blank',
-  )
-  .example(
-    'Get a sorted table, skip file backups',
-    'stale-clients --format "table" --sort "image" --skip-file',
-  )
-  .example(
-    'Get reversed list',
-    'stale-clients --format "list" --sort "name" --reverse',
-  )
+  .example('Get a sorted table, skip BLANK clients', 'stale-clients --format "table" --sort "name" --skip-blank')
+  .example('Get a sorted table, skip file backups', 'stale-clients --format "table" --sort "image" --skip-file')
+  .example('Get reversed list', 'stale-clients --format "list" --sort "name" --reverse')
   .example(
     'Get clients with file backup older than a day',
     'stale-clients --format "table" --sort "name" --threshold-file 1440',
@@ -1066,48 +866,21 @@ cli.command(
     'Get number of clients with image backup older than 12hrs',
     'stale-clients --format "number" --threshold-image 720 --skip-file',
   )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option(
-    '--threshold-file <minutes:integer>',
-    'Set time threshold in minutes.',
-    {
-      default: getConfigValue('URBSTAT_THRESHOLD_STALE_FILE'),
-    },
-  )
-  .option(
-    '--threshold-image <minutes:integer>',
-    'Set time threshold in minutes.',
-    {
-      default: getConfigValue('URBSTAT_THRESHOLD_STALE_IMAGE'),
-    },
-  )
-  .option('--skip-file', 'Skip file backups when matching clients.', {
-    conflicts: ['skip-image'],
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
   })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--threshold-file <minutes:integer>', 'Set time threshold in minutes.', {
+    default: getConfigValue('URBSTAT_THRESHOLD_STALE_FILE'),
+  })
+  .option('--threshold-image <minutes:integer>', 'Set time threshold in minutes.', {
+    default: getConfigValue('URBSTAT_THRESHOLD_STALE_IMAGE'),
+  })
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
@@ -1116,12 +889,9 @@ cli.command(
 
       for (const client of staleClientsResponse) {
         if (commandOptions.skipFile !== true) {
-          const timestampDifference = Math.round(
-            (currentEpochTime - (client?.lastbackup ?? 0)) / 60,
-          );
+          const timestampDifference = Math.round((currentEpochTime - (client?.lastbackup ?? 0)) / 60);
           if (
-            (commandOptions.skipBlank !== true ||
-              (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
+            (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
             client.file_disabled !== true &&
             timestampDifference >= commandOptions.thresholdFile
           ) {
@@ -1131,13 +901,10 @@ cli.command(
         }
 
         if (commandOptions.skipImage !== true) {
-          const timestampDifference = Math.round(
-            (currentEpochTime - (client?.lastbackup_image ?? 0)) / 60,
-          );
+          const timestampDifference = Math.round((currentEpochTime - (client?.lastbackup_image ?? 0)) / 60);
           if (
             (commandOptions.skipBlank !== true ||
-              (commandOptions.skipBlank === true &&
-                client.lastbackup_image !== 0)) &&
+              (commandOptions.skipBlank === true && client.lastbackup_image !== 0)) &&
             client.image_disabled !== true &&
             timestampDifference >= commandOptions.thresholdImage
           ) {
@@ -1163,47 +930,19 @@ cli.command(
   'Retrieves blank clients i.e. clients without any finished backups. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get BLANK clients, use default options', 'blank-clients')
-  .example(
-    'Get the total number of BLANK clients',
-    'blank-clients --format "number"',
-  )
+  .example('Get the total number of BLANK clients', 'blank-clients --format "number"')
   .example('Get a sorted table', 'blank-clients --format "table" --sort "seen"')
-  .example(
-    'Get a sorted table, skip image backups',
-    'blank-clients --format "table" --sort "name" --skip-image',
-  )
-  .example(
-    'Get reversed list',
-    'blank-clients --format "list" --sort "name" --reverse',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option('--skip-file', 'Skip file backups when matching clients.', {
-    conflicts: ['skip-image'],
+  .example('Get a sorted table, skip image backups', 'blank-clients --format "table" --sort "name" --skip-image')
+  .example('Get reversed list', 'blank-clients --format "list" --sort "name" --reverse')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
   })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .action((commandOptions) => {
     makeServerCalls(['blank-clients'], commandOptions).then(() => {
@@ -1230,52 +969,20 @@ cli
     'Retrieves void clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.',
   )
   .example('Get VOID clients, use default options', 'void-clients')
-  .example(
-    'Get the total number of VOID clients',
-    'void-clients --format "number"',
-  )
+  .example('Get the total number of VOID clients', 'void-clients --format "number"')
   .example('Get a sorted table', 'void-clients --format "table" --sort "name"')
-  .example(
-    'Get a sorted table, skip BLANK clients',
-    'void-clients --format "table" --sort "seen" --skip-blank',
-  )
-  .example(
-    'Get reversed list',
-    'void-clients --format "list" --sort "name" --reverse',
-  )
-  .example(
-    'Get clients not seen for more than two days',
-    'void-clients --format "table" --sort "name" --threshold 2880',
-  )
-  .example(
-    'Get number of clients not seen for more than 12hrs',
-    'void-clients --format "number" --threshold 720',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
+  .example('Get a sorted table, skip BLANK clients', 'void-clients --format "table" --sort "seen" --skip-blank')
+  .example('Get reversed list', 'void-clients --format "list" --sort "name" --reverse')
+  .example('Get clients not seen for more than 2 days', 'void-clients --format "table" --sort "name" --threshold 2880')
+  .example('Get number of clients not seen for more than 12hrs', 'void-clients --format "number" --threshold 720')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
+  })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', {
     default: getConfigValue('URBSTAT_THRESHOLD_VOID_CLIENT'),
   })
@@ -1285,21 +992,13 @@ cli
       const matchingClients = [];
 
       for (const client of voidClientsResponse) {
-        const timestampDifference = Math.round(
-          (currentEpochTime - (client?.lastseen ?? 0)) / 60,
-        );
+        const timestampDifference = Math.round((currentEpochTime - (client?.lastseen ?? 0)) / 60);
         if (timestampDifference >= commandOptions.threshold) {
-          if (
-            commandOptions.skipBlank === true &&
-            client.file_disabled !== true && client.lastbackup === 0
-          ) {
+          if (commandOptions.skipBlank === true && client.file_disabled !== true && client.lastbackup === 0) {
             continue;
           }
 
-          if (
-            commandOptions.skipBlank === true &&
-            client.image_disabled !== true && client.lastbackup_image === 0
-          ) {
+          if (commandOptions.skipBlank === true && client.image_disabled !== true && client.lastbackup_image === 0) {
             continue;
           }
 
@@ -1323,47 +1022,18 @@ cli.command(
   'Retrieves online clients. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get ONLINE clients, use default options', 'online-clients')
-  .example(
-    'Get the total number of ONLINE clients',
-    'online-clients --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'online-clients --format "table" --sort "name"',
-  )
-  .example(
-    'Get a sorted table, skip BLANK clients',
-    'online-clients --format "table" --sort "name" --skip-blank',
-  )
-  .example(
-    'Get reversed list',
-    'online-clients --format "list" --sort "name" --reverse',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
+  .example('Get the total number of ONLINE clients', 'online-clients --format "number"')
+  .example('Get a sorted table', 'online-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'online-clients --format "table" --sort "name" --skip-blank')
+  .example('Get reversed list', 'online-clients --format "list" --sort "name" --reverse')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
+  })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['online-clients'], commandOptions).then(() => {
@@ -1371,8 +1041,7 @@ cli.command(
 
       for (const client of onlineClientsResponse) {
         if (
-          (commandOptions.skipBlank !== true ||
-            (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
+          (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
           (client.online === true)
         ) {
           matchingClients.push(client);
@@ -1395,47 +1064,18 @@ cli.command(
   'Retrieves offline clients. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get OFFLINE clients, use default options', 'offline-clients')
-  .example(
-    'Get the total number of OFFLINE clients',
-    'offline-clients --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'offline-clients --format "table" --sort "name"',
-  )
-  .example(
-    'Get a sorted table, skip BLANK clients',
-    'offline-clients --format "table" --sort "name" --skip-blank',
-  )
-  .example(
-    'Get reversed list',
-    'offline-clients --format "list" --sort "name" --reverse',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
+  .example('Get the total number of OFFLINE clients', 'offline-clients --format "number"')
+  .example('Get a sorted table', 'offline-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'offline-clients --format "table" --sort "name" --skip-blank')
+  .example('Get reversed list', 'offline-clients --format "list" --sort "name" --reverse')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
+  })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['offline-clients'], commandOptions).then(() => {
@@ -1443,8 +1083,7 @@ cli.command(
 
       for (const client of offlineClientsResponse) {
         if (
-          (commandOptions.skipBlank !== true ||
-            (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
+          (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
           (client.online === false)
         ) {
           matchingClients.push(client);
@@ -1467,43 +1106,17 @@ cli.command(
   'Retrieves currently active clients. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE.',
 )
   .example('Get ACTIVE clients, use default options', 'active-clients')
-  .example(
-    'Get the total number of ACTIVE clients',
-    'active-clients --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'active-clients --format "table" --sort "name"',
-  )
-  .example(
-    'Get reversed list',
-    'active-clients --format "list" --sort "name" --reverse',
-  )
-  .option(
-    '--format <format:clientsFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:clientsSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_CLIENTS_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
+  .example('Get the total number of ACTIVE clients', 'active-clients --format "number"')
+  .example('Get a sorted table', 'active-clients --format "table" --sort "name"')
+  .example('Get reversed list', 'active-clients --format "list" --sort "name" --reverse')
+  .option('--format <format:clientsFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
+  })
+  .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_CLIENTS_SORT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .action((commandOptions) => {
     makeServerCalls(['active-clients'], commandOptions).then(() => {
       const matchingClients = [];
@@ -1528,14 +1141,8 @@ cli.command(
   'Retrieves current activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.',
 )
   .example('Get CURRENT activities, use default options', 'current-activities')
-  .example(
-    'Get the total number of CURRENT activities',
-    'current-activities --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'current-activities --format "table" --sort "progress"',
-  )
+  .example('Get the total number of CURRENT activities', 'current-activities --format "number"')
+  .example('Get a sorted table', 'current-activities --format "table" --sort "progress"')
   .example(
     'Get a sorted table, skip PAUSED activities',
     'current-activities --format "table" --sort "progress" --skip-paused',
@@ -1548,52 +1155,23 @@ cli.command(
     'Get CURRENT activities of selected client',
     'current-activities --format "table" --sort "eta" --client "office"',
   )
-  .option(
-    '--format <format:activitiesFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:currentActivitiesSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format. ",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of activities, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
+  .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT'),
+  })
+  .option('--sort <field:currentActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format. ")
+  .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
   .option('--skip-paused', 'Skip paused activities.')
-  .option(
-    '--client <name:string>',
-    'Limit activities to specified client only.',
-    {
-      default: '',
-    },
-  )
+  .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.current) {
-        if (
-          commandOptions.skipPaused !== true ||
-          (commandOptions.skipPaused === true && activity.paused !== true)
-        ) {
-          if (
-            commandOptions.client.length > 0 &&
-            activity.name !== commandOptions.client
-          ) {
+        if (commandOptions.skipPaused !== true || (commandOptions.skipPaused === true && activity.paused !== true)) {
+          if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
             continue;
           }
 
@@ -1601,11 +1179,7 @@ cli.command(
         }
       }
 
-      processMatchingData(
-        matchingActivities,
-        'currentActivities',
-        commandOptions,
-      );
+      processMatchingData(matchingActivities, 'currentActivities', commandOptions);
       printOutput(matchingActivities, commandOptions?.format);
     });
   });
@@ -1621,67 +1195,26 @@ cli.command(
   'Retrieves last activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_LAST, URBSTAT_LOCALE.',
 )
   .example('Get LAST activities, use default options', 'last-activities')
-  .example(
-    'Get the total number of LAST activities',
-    'last-activities --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'last-activities --format "table" --sort "progress"',
-  )
-  .example(
-    'Get three activities with biggest size',
-    'last-activities --format "table" --sort "size" --max 3 --reverse',
-  )
-  .example(
-    'Get three longest activities',
-    'last-activities --format "table" --sort "duration" --max 3 --reverse',
-  )
-  .example(
-    'Get LAST activities of selected client',
-    'last-activities --format "table" --sort "time" --client "office"',
-  )
-  .option(
-    '--format <format:activitiesFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:lastActivitiesSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_ACTIVITIES_SORT_LAST'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of activities, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option(
-    '--client <name:string>',
-    'Limit activities to specified client only.',
-    {
-      default: '',
-    },
-  )
+  .example('Get the total number of LAST activities', 'last-activities --format "number"')
+  .example('Get a sorted table', 'last-activities --format "table" --sort "progress"')
+  .example('Get three activities with biggest size', 'last-activities --format "table" --sort "size" --max 3 --reverse')
+  .example('Get three longest activities', 'last-activities --format "table" --sort "duration" --max 3 --reverse')
+  .example('Get LAST activities of selected client', 'last-activities --format "table" --sort "time" --client "office"')
+  .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT'),
+  })
+  .option('--sort <field:lastActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_ACTIVITIES_SORT_LAST'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
+  .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.last) {
-        if (
-          commandOptions.client.length > 0 &&
-          activity.name !== commandOptions.client
-        ) {
+        if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
           continue;
         }
 
@@ -1704,64 +1237,26 @@ cli.command(
   'Retrieves paused activities.\nRequired rights: progress(all), lastacts(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_ACTIVITIES_FORMAT, URBSTAT_ACTIVITIES_SORT_CURRENT, URBSTAT_LOCALE.',
 )
   .example('Get PAUSED activities, use default options', 'paused-activities')
-  .example(
-    'Get the total number of PAUSED activities',
-    'paused-activities --format "number"',
-  )
-  .example(
-    'Get a sorted table',
-    'paused-activities --format "table" --sort "progress"',
-  )
-  .example(
-    'Get three activities with biggest size',
-    'paused-activities --format "table" --sort "size" --max 3 --reverse',
-  )
-  .example(
-    'Get PAUSED activities of selected client',
-    'paused-activities --format "table" --sort "time" --client "office"',
-  )
-  .option(
-    '--format <format:activitiesFormatValues>',
-    'Change the output format.',
-    {
-      default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT'),
-    },
-  )
-  .option(
-    '--sort <field:currentActivitiesSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of activities, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option(
-    '--client <name:string>',
-    'Limit activities to specified client only.',
-    {
-      default: '',
-    },
-  )
+  .example('Get the total number of PAUSED activities', 'paused-activities --format "number"')
+  .example('Get a sorted table', 'paused-activities --format "table" --sort "progress"')
+  .example('Get 3 activities with biggest size', 'paused-activities --format "table" --sort "size" --max 3 --reverse')
+  .example('Get PAUSED activities of a client', 'paused-activities --format "table" --sort "time" --client "office"')
+  .option('--format <format:activitiesFormatValues>', 'Change the output format.', {
+    default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT'),
+  })
+  .option('--sort <field:currentActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT'),
+  })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
+  .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       const matchingActivities = [];
 
       for (const activity of activitiesResponse.current) {
         if (activity.paused === true) {
-          if (
-            commandOptions.client.length > 0 &&
-            activity.name !== commandOptions.client
-          ) {
+          if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
             continue;
           }
 
@@ -1769,11 +1264,7 @@ cli.command(
         }
       }
 
-      processMatchingData(
-        matchingActivities,
-        'currentActivities',
-        commandOptions,
-      );
+      processMatchingData(matchingActivities, 'currentActivities', commandOptions);
       printOutput(matchingActivities, commandOptions?.format);
     });
   });
@@ -1790,47 +1281,23 @@ cli.command(
 )
   .example('Get storage usage, use default options', 'usage')
   .example('Get a sorted table', 'usage --format "table" --sort "name"')
-  .example(
-    'Get three clients with biggest usage',
-    'usage --format "table" --sort "total" --max 3 --reverse',
-  )
-  .example(
-    'Get storage usage of selected client',
-    'usage --format "table" --client "office"',
-  )
+  .example('Get three clients with biggest usage', 'usage --format "table" --sort "total" --max 3 --reverse')
+  .example('Get storage usage of selected client', 'usage --format "table" --client "office"')
   .option('--format <format:usageFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_USAGE_FORMAT'),
   })
-  .option(
-    '--sort <field:usageSortValues>',
-    "Change the sorting order. Ignored with 'raw' output format.",
-    {
-      default: getConfigValue('URBSTAT_USAGE_SORT'),
-    },
-  )
-  .option(
-    '--reverse',
-    "Reverse the sorting order. Ignored with 'raw' output format.",
-  )
-  .option(
-    '--max <number:integer>',
-    'Show only <number> of clients, 0 means no limit.',
-    {
-      default: 0,
-    },
-  )
-  .option('--client <name:string>', 'Limit usage to specified client only.', {
-    default: '',
+  .option('--sort <field:usageSortValues>', "Change the sorting order. Ignored with 'raw' output format.", {
+    default: getConfigValue('URBSTAT_USAGE_SORT'),
   })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--client <name:string>', 'Limit usage to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['usage'], commandOptions).then(() => {
       const matchingUsage = [];
 
       for (const usage of usageResponse) {
-        if (
-          commandOptions.client.length > 0 &&
-          usage.name !== commandOptions.client
-        ) {
+        if (commandOptions.client.length > 0 && usage.name !== commandOptions.client) {
           continue;
         }
 
@@ -1867,34 +1334,23 @@ cli.command(
           const matchingClient = [];
           matchingClient.push(statusResponse[0]);
 
-          if (
-            typeof matchingClient[0] !== 'undefined' &&
-            matchingClient[0]?.id > 0
-          ) {
+          if (typeof matchingClient[0] !== 'undefined' && matchingClient[0]?.id > 0) {
             const matchingClientId = matchingClient[0].id;
-            const matchingCurrentActivities = activitiesResponse.current.filter(
-              (activity) => activity.clientid === matchingClientId,
+            const matchingCurrentActivities = activitiesResponse.current.filter((activity) =>
+              activity.clientid === matchingClientId
             );
-            const matchingLastActivities = activitiesResponse.last.filter(
-              (activity) => activity.clientid === matchingClientId,
+            const matchingLastActivities = activitiesResponse.last.filter((activity) =>
+              activity.clientid === matchingClientId
             );
             const matchingUsage = [];
-            matchingUsage.push(
-              usageResponse.find((element) =>
-                element.name === matchingClient[0].name
-              ),
-            );
+            matchingUsage.push(usageResponse.find((element) => element.name === matchingClient[0].name));
 
             console.log('Status:');
             processMatchingData(matchingClient, 'clients', commandOptions);
             printOutput(matchingClient, commandOptions?.format);
 
             console.log('Current activities:');
-            processMatchingData(
-              matchingCurrentActivities,
-              'currentActivities',
-              commandOptions,
-            );
+            processMatchingData(matchingCurrentActivities, 'currentActivities', commandOptions);
             if (matchingCurrentActivities.length > 0) {
               printOutput(matchingCurrentActivities, commandOptions?.format);
             } else {
@@ -1904,11 +1360,7 @@ cli.command(
             }
 
             console.log('Last activities:');
-            processMatchingData(
-              matchingLastActivities,
-              'lastActivities',
-              commandOptions,
-            );
+            processMatchingData(matchingLastActivities, 'lastActivities', commandOptions);
             if (matchingLastActivities.length > 0) {
               printOutput(matchingLastActivities, commandOptions?.format);
             } else {
@@ -1926,11 +1378,7 @@ cli.command(
       );
     } else {
       this.showHelp();
-      console.log(
-        cliTheme.error(
-          'error: You need to provide "--id" or "--name" option to this command',
-        ),
-      );
+      console.log(cliTheme.error('error: You need to provide "--id" or "--name" option to this command'));
       Deno.exit(1);
     }
   });
