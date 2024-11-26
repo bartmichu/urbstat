@@ -149,6 +149,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       ? await server.getActivities({
         includeCurrent: true,
         includeLast: true,
+        includePaused: commandOptions?.skipPaused !== true,
+        clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
       })
       : null;
 
@@ -172,7 +174,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
     failedClientsResponse = requiredCalls.includes('failed-clients')
       ? await server.getFailedClients({
         includeRemoved: false,
-        includeBlankClients: commandOptions?.skipBlank !== true,
+        includeBlank: commandOptions?.skipBlank !== true,
         includeFileBackups: commandOptions?.skipFile !== true,
         includeImageBackups: commandOptions?.skipImage !== true,
         failOnFileIssues: commandOptions?.strict,
@@ -194,20 +196,24 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       : null;
 
     voidClientsResponse = requiredCalls.includes('void-clients')
-      ? await server.getClients({
+      ? await server.getUnseenClients({
         includeRemoved: false,
+        includeBlank: commandOptions?.skipBlank !== true,
+        timeThreshold: commandOptions?.threshold,
       })
       : null;
 
     onlineClientsResponse = requiredCalls.includes('online-clients')
       ? await server.getOnlineClients({
         includeRemoved: false,
+        includeBlank: commandOptions?.skipBlank !== true,
       })
       : null;
 
     offlineClientsResponse = requiredCalls.includes('offline-clients')
       ? await server.getOfflineClients({
         includeRemoved: false,
+        includeBlank: commandOptions?.skipBlank !== true,
       })
       : null;
 
@@ -746,14 +752,8 @@ cli.command(
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .action((commandOptions) => {
     makeServerCalls(['all-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of allClientsResponse) {
-        matchingClients.push(client);
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(allClientsResponse, 'clients', commandOptions);
+      printOutput(allClientsResponse, commandOptions?.format);
     });
   });
 
@@ -788,14 +788,8 @@ cli
   .option('--strict', 'Do not treat backups finished with issues as being OK.')
   .action((commandOptions) => {
     makeServerCalls(['ok-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of okClientsResponse) {
-        matchingClients.push(client);
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(okClientsResponse, 'clients', commandOptions);
+      printOutput(okClientsResponse, commandOptions?.format);
     });
   });
 
@@ -831,14 +825,8 @@ cli.command(
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['failed-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of failedClientsResponse) {
-        matchingClients.push(client);
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(failedClientsResponse, 'clients', commandOptions);
+      printOutput(failedClientsResponse, commandOptions?.format);
     });
   });
 
@@ -946,14 +934,8 @@ cli.command(
   .option('--skip-image', 'Skip image backups when matching clients.')
   .action((commandOptions) => {
     makeServerCalls(['blank-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of blankClientsResponse) {
-        matchingClients.push(client);
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(blankClientsResponse, 'clients', commandOptions);
+      printOutput(blankClientsResponse, commandOptions?.format);
     });
   });
 
@@ -989,25 +971,8 @@ cli
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['void-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of voidClientsResponse) {
-        const timestampDifference = Math.round((currentEpochTime - (client?.lastseen ?? 0)) / 60);
-        if (timestampDifference >= commandOptions.threshold) {
-          if (commandOptions.skipBlank === true && client.file_disabled !== true && client.lastbackup === 0) {
-            continue;
-          }
-
-          if (commandOptions.skipBlank === true && client.image_disabled !== true && client.lastbackup_image === 0) {
-            continue;
-          }
-
-          matchingClients.push(client);
-        }
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(voidClientsResponse, 'clients', commandOptions);
+      printOutput(voidClientsResponse, commandOptions?.format);
     });
   });
 
@@ -1037,19 +1002,8 @@ cli.command(
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['online-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of onlineClientsResponse) {
-        if (
-          (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
-          (client.online === true)
-        ) {
-          matchingClients.push(client);
-        }
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(onlineClientsResponse, 'clients', commandOptions);
+      printOutput(onlineClientsResponse, commandOptions?.format);
     });
   });
 
@@ -1079,19 +1033,8 @@ cli.command(
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['offline-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of offlineClientsResponse) {
-        if (
-          (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
-          (client.online === false)
-        ) {
-          matchingClients.push(client);
-        }
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(offlineClientsResponse, 'clients', commandOptions);
+      printOutput(offlineClientsResponse, commandOptions?.format);
     });
   });
 
@@ -1119,14 +1062,8 @@ cli.command(
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .action((commandOptions) => {
     makeServerCalls(['active-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of activeClientsResponse) {
-        matchingClients.push(client);
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(activeClientsResponse, 'clients', commandOptions);
+      printOutput(activeClientsResponse, commandOptions?.format);
     });
   });
 
@@ -1167,20 +1104,8 @@ cli.command(
   .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
-      const matchingActivities = [];
-
-      for (const activity of activitiesResponse.current) {
-        if (commandOptions.skipPaused !== true || (commandOptions.skipPaused === true && activity.paused !== true)) {
-          if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
-            continue;
-          }
-
-          matchingActivities.push(activity);
-        }
-      }
-
-      processMatchingData(matchingActivities, 'currentActivities', commandOptions);
-      printOutput(matchingActivities, commandOptions?.format);
+      processMatchingData(activitiesResponse.current, 'currentActivities', commandOptions);
+      printOutput(activitiesResponse.current, commandOptions?.format);
     });
   });
 
@@ -1211,18 +1136,8 @@ cli.command(
   .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
-      const matchingActivities = [];
-
-      for (const activity of activitiesResponse.last) {
-        if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
-          continue;
-        }
-
-        matchingActivities.push(activity);
-      }
-
-      processMatchingData(matchingActivities, 'lastActivities', commandOptions);
-      printOutput(matchingActivities, commandOptions?.format);
+      processMatchingData(activitiesResponse.last, 'lastActivities', commandOptions);
+      printOutput(activitiesResponse.last, commandOptions?.format);
     });
   });
 
