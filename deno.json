@@ -1,10 +1,9 @@
 {
   "version": "0.12.0",
   "fmt": {
-    "options": {
-      "lineWidth": 120,
-      "singleQuote": true
-    }
+    "lineWidth": 120,
+    "proseWrap": "preserve",
+    "singleQuote": true
   },
   "imports": {
     "@cliffy/ansi": "jsr:@cliffy/ansi@1.0.0-rc.7",
