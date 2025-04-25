@@ -13,8 +13,7 @@ const configFallback = {
   URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
   URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
   URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
-  URBSTAT_THRESHOLD_STALE_FILE: { defaultValue: 7200 },
-  URBSTAT_THRESHOLD_STALE_IMAGE: { defaultValue: 7200 },
+  URBSTAT_THRESHOLD_STALE_CLIENT: { defaultValue: 7200 },
   URBSTAT_THRESHOLD_VOID_CLIENT: { defaultValue: 10080 },
   URBSTAT_LOCALE: { defaultValue: 'en' },
   URBSTAT_CLIENTS_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'list', 'number', 'raw'] },
@@ -182,8 +181,12 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       : null;
 
     staleClientsResponse = requiredCalls.includes('stale-clients')
-      ? await server.getClients({
+      ? await server.getStaleClients({
         includeRemoved: false,
+        includeBlank: commandOptions?.skipBlank !== true,
+        includeFileBackups: commandOptions?.skipFile !== true,
+        includeImageBackups: commandOptions?.skipImage !== true,
+        timeThreshold: commandOptions?.threshold,
       })
       : null;
 
@@ -840,11 +843,11 @@ cli.command(
  * Retrieves stale clients, i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output cannot be sorted or filtered and property names/values are left unaltered.
- * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_CLIENT.
  */
 cli.command(
   'stale-clients',
-  'Retrieves stale clients i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_FILE, URBSTAT_THRESHOLD_STALE_IMAGE.',
+  'Retrieves stale clients i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_CLIENT.',
 )
   .example('Get STALE clients, use default options', 'stale-clients')
   .example('Get the total number of STALE clients', 'stale-clients --format "number"')
@@ -854,11 +857,11 @@ cli.command(
   .example('Get reversed list', 'stale-clients --format "list" --sort "name" --reverse')
   .example(
     'Get clients with file backup older than a day',
-    'stale-clients --format "table" --sort "name" --threshold-file 1440',
+    'stale-clients --format "table" --sort "name" --threshold 1440 --skip-image',
   )
   .example(
     'Get number of clients with image backup older than 12hrs',
-    'stale-clients --format "number" --threshold-image 720 --skip-file',
+    'stale-clients --format "number" --threshold 720 --skip-file',
   )
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
@@ -868,11 +871,8 @@ cli.command(
   })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
-  .option('--threshold-file <minutes:integer>', 'Set time threshold in minutes.', {
-    default: getConfigValue('URBSTAT_THRESHOLD_STALE_FILE'),
-  })
-  .option('--threshold-image <minutes:integer>', 'Set time threshold in minutes.', {
-    default: getConfigValue('URBSTAT_THRESHOLD_STALE_IMAGE'),
+  .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', {
+    default: getConfigValue('URBSTAT_THRESHOLD_STALE_CLIENT'),
   })
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
@@ -887,7 +887,7 @@ cli.command(
           if (
             (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
             client.file_disabled !== true &&
-            timestampDifference >= commandOptions.thresholdFile
+            timestampDifference >= commandOptions.threshold
           ) {
             matchingClients.push(client);
             continue;
@@ -900,7 +900,7 @@ cli.command(
             (commandOptions.skipBlank !== true ||
               (commandOptions.skipBlank === true && client.lastbackup_image !== 0)) &&
             client.image_disabled !== true &&
-            timestampDifference >= commandOptions.thresholdImage
+            timestampDifference >= commandOptions.threshold
           ) {
             matchingClients.push(client);
             continue;

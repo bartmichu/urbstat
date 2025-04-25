@@ -26,7 +26,7 @@ The following features have been implemented:
   status (as seen in the server web UI).
 
 - Information about clients without a recent backup (referred to as stale
-  clients), with thresholds that can be configured.
+  clients), with threshold that can be configured.
 
 - Information about clients without any finished backups (blank clients) and
   clients not seen for a long time (void clients), with a threshold that can be
@@ -74,7 +74,7 @@ Retrieve clients with a file backup that is older than 24 hours (1440 minutes)
 since the last backup:
 
 ```shell
-stale-clients --threshold-file 1440 --sort name --format table
+stale-clients --threshold 1440 --skip-image --sort name --format table
 ```
 
 Retrieve clients that have not been seen for more than 48 hours (2880 minutes):
@@ -175,6 +175,13 @@ significant changes.
 
 ### Breaking Changes
 
+- 0.14.0
+  - Matching stale clients now uses a single common time threshold instead of
+    separate thresholds for files and images. This is specified using the
+    `--threshold` option and the `URBSTAT_THRESHOLD_STALE_CLIENT` configuration
+    option. The previous behavior can still be achieved by combining the
+    `--threshold` option with `--skip-file` and `--skip-image`.
+
 - 0.10.0
   - The configuration file name has been changed from `.env` to `urbstat.conf`.
 
@@ -262,8 +269,7 @@ Get more help about a specific command and its applicable options:
   urbstat. Required rights: `status(all)`. If you specify "raw" format then
   output can not be sorted or filtered and property names/values are left
   unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
-  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_STALE_FILE`,
-  `URBSTAT_THRESHOLD_STALE_IMAGE`.
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_STALE_CLIENT`.
 
 - **void-clients**
 
