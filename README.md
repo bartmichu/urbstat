@@ -29,7 +29,7 @@ The following features have been implemented:
   clients), with threshold that can be configured.
 
 - Information about clients without any finished backups (blank clients) and
-  clients not seen for a long time (void clients), with a threshold that can be
+  clients not seen for a long time (unseen clients), with a threshold that can be
   configured.
 
 - Information about online, offline, and active clients.
@@ -80,7 +80,7 @@ stale-clients --threshold 1440 --skip-image --sort name --format table
 Retrieve clients that have not been seen for more than 48 hours (2880 minutes):
 
 ```shell
-void-clients --threshold 2880 --sort name --format table
+unseen-clients --threshold 2880 --sort name --format table
 ```
 
 Retrieve a list containing the names of clients that have not yet completed any
@@ -176,11 +176,9 @@ significant changes.
 ### Breaking Changes
 
 - 0.14.0
-  - Matching stale clients now uses a single common time threshold instead of
-    separate thresholds for files and images. This is specified using the
-    `--threshold` option and the `URBSTAT_THRESHOLD_STALE_CLIENT` configuration
-    option. The previous behavior can still be achieved by combining the
-    `--threshold` option with `--skip-file` and `--skip-image`.
+  - Matching stale clients now uses a single common time threshold instead of separate thresholds for files and images. This is specified using the `--threshold` option and the `URBSTAT_THRESHOLD_STALE_CLIENT` configuration option. The previous behavior can still be achieved by combining the `--threshold` option with `--skip-file` and `--skip-image`.
+
+  - Naming change – "void" clients are now referred to as "unseen" clients. As a result, the option name has changed to `--unseen-clients`, and the corresponding configuration option is now `URBSTAT_THRESHOLD_UNSEEN_CLIENT`.
 
 - 0.10.0
   - The configuration file name has been changed from `.env` to `urbstat.conf`.
@@ -188,8 +186,7 @@ significant changes.
 ### Notable Changes
 
 - 0.11.0
-  - Now that deno compile supports npm modules, I switched to using my
-    `urbackup-server-api` Node.js library.
+  - Now that deno compile supports npm modules, I switched to using my `urbackup-server-api` Node.js library.
 
 - 0.10.0
   - The configuration file name has been changed from `.env` to `urbstat.conf`.
@@ -271,13 +268,13 @@ Get more help about a specific command and its applicable options:
   unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
   `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_STALE_CLIENT`.
 
-- **void-clients**
+- **unseen-clients**
 
-  Get void clients i.e. clients not seen for a long time as configured in
+  Get unseen clients i.e. clients not seen for a long time as configured in
   urbstat. Required rights: `status(all)`. If you specify "raw" format then
   output can not be sorted or filtered and property names/values are left
   unaltered.Default options are configured with: `URBSTAT_CLIENTS_FORMAT`,
-  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_VOID_CLIENT`.
+  `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_UNSEEN_CLIENT`.
 
 - **online-clients**
 

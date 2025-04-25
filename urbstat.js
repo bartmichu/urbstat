@@ -14,7 +14,7 @@ const configFallback = {
   URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
   URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
   URBSTAT_THRESHOLD_STALE_CLIENT: { defaultValue: 7200 },
-  URBSTAT_THRESHOLD_VOID_CLIENT: { defaultValue: 10080 },
+  URBSTAT_THRESHOLD_UNSEEN_CLIENT: { defaultValue: 10080 },
   URBSTAT_LOCALE: { defaultValue: 'en' },
   URBSTAT_CLIENTS_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'list', 'number', 'raw'] },
   URBSTAT_CLIENTS_SORT: { defaultValue: 'name', acceptedValues: ['name', 'seen', 'file', 'image'] },
@@ -97,9 +97,9 @@ let staleClientsResponse;
 let blankClientsResponse;
 
 /**
- * The void-clients response from the server.
+ * The unseen-clients response from the server.
  */
-let voidClientsResponse;
+let unseenClientsResponse;
 
 /**
  * The online-clients response from the server.
@@ -198,7 +198,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       })
       : null;
 
-    voidClientsResponse = requiredCalls.includes('void-clients')
+    unseenClientsResponse = requiredCalls.includes('unseen-clients')
       ? await server.getUnseenClients({
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
@@ -946,23 +946,26 @@ cli.command(
   });
 
 /**
- * Retrieves void clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.
+ * Retrieves unseen clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
- * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_UNSEEN_CLIENT.
  */
 cli
   .command(
-    'void-clients',
-    'Retrieves void clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_VOID_CLIENT.',
+    'unseen-clients',
+    'Retrieves unseen clients i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_UNSEEN_CLIENT.',
   )
-  .example('Get VOID clients, use default options', 'void-clients')
-  .example('Get the total number of VOID clients', 'void-clients --format "number"')
-  .example('Get a sorted table', 'void-clients --format "table" --sort "name"')
-  .example('Get a sorted table, skip BLANK clients', 'void-clients --format "table" --sort "seen" --skip-blank')
-  .example('Get reversed list', 'void-clients --format "list" --sort "name" --reverse')
-  .example('Get clients not seen for more than 2 days', 'void-clients --format "table" --sort "name" --threshold 2880')
-  .example('Get number of clients not seen for more than 12hrs', 'void-clients --format "number" --threshold 720')
+  .example('Get UNSEEN clients, use default options', 'unseen-clients')
+  .example('Get the total number of UNSEEN clients', 'unseen-clients --format "number"')
+  .example('Get a sorted table', 'unseen-clients --format "table" --sort "name"')
+  .example('Get a sorted table, skip BLANK clients', 'unseen-clients --format "table" --sort "seen" --skip-blank')
+  .example('Get reversed list', 'unseen-clients --format "list" --sort "name" --reverse')
+  .example(
+    'Get clients not seen for more than 2 days',
+    'unseen-clients --format "table" --sort "name" --threshold 2880',
+  )
+  .example('Get number of clients not seen for more than 12hrs', 'unseen-clients --format "number" --threshold 720')
   .option('--format <format:clientsFormatValues>', 'Change the output format.', {
     default: getConfigValue('URBSTAT_CLIENTS_FORMAT'),
   })
@@ -972,13 +975,13 @@ cli
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', {
-    default: getConfigValue('URBSTAT_THRESHOLD_VOID_CLIENT'),
+    default: getConfigValue('URBSTAT_THRESHOLD_UNSEEN_CLIENT'),
   })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
-    makeServerCalls(['void-clients'], commandOptions).then(() => {
-      processMatchingData(voidClientsResponse, 'clients', commandOptions);
-      printOutput(voidClientsResponse, commandOptions?.format);
+    makeServerCalls(['unseen-clients'], commandOptions).then(() => {
+      processMatchingData(unseenClientsResponse, 'clients', commandOptions);
+      printOutput(unseenClientsResponse, commandOptions?.format);
     });
   });
 
