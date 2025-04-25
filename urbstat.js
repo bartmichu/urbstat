@@ -50,12 +50,6 @@ const getConfigValue = function (key) {
   }
 };
 
-// NOTE: Conversion is needed as UrBackup/Python uses seconds for timestamps whereas Javascript uses milliseconds.
-/**
- * The current epoch time in seconds.
- */
-const currentEpochTime = Math.round(new Date().getTime() / 1000.0);
-
 /**
  * The status response from the server.
  */
@@ -65,6 +59,11 @@ let statusResponse;
  * The activities response from the server.
  */
 let activitiesResponse;
+
+/**
+ * The paused activities response from the server.
+ */
+let pausedActivitiesResponse;
 
 /**
  * The usage response from the server.
@@ -138,22 +137,32 @@ async function makeServerCalls(requiredCalls, commandOptions) {
   try {
     statusResponse = requiredCalls.includes('status')
       ? await server.getStatus({
-        includeRemoved: true,
         clientId: commandOptions?.id,
         clientName: commandOptions?.name,
+        includeRemoved: true,
       })
       : null;
 
     activitiesResponse = requiredCalls.includes('activities')
       ? await server.getActivities({
+        clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
         includeCurrent: true,
         includeLast: true,
         includePaused: commandOptions?.skipPaused !== true,
+      })
+      : null;
+
+    pausedActivitiesResponse = requiredCalls.includes('paused-activities')
+      ? await server.getPausedActivities({
         clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
       })
       : null;
 
-    usageResponse = requiredCalls.includes('usage') ? await server.getUsage() : null;
+    usageResponse = requiredCalls.includes('usage')
+      ? await server.getUsage({
+        clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
+      })
+      : null;
 
     allClientsResponse = requiredCalls.includes('all-clients')
       ? await server.getClients({
@@ -575,6 +584,9 @@ const processMatchingData = function (data, type, commandOptions) {
       case 'currentActivities':
         data[index] = normalizeActivity(element, false, commandOptions?.format);
         break;
+      case 'pausedActivities':
+        data[index] = normalizeActivity(element, false, commandOptions?.format);
+        break;
       case 'lastActivities':
         data[index] = normalizeActivity(element, true, commandOptions?.format);
         break;
@@ -641,7 +653,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.13.1')
+  .version('0.14.0')
   .description(
     'The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in the urbstat.conf configuration file.',
   )
@@ -879,37 +891,8 @@ cli.command(
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['stale-clients'], commandOptions).then(() => {
-      const matchingClients = [];
-
-      for (const client of staleClientsResponse) {
-        if (commandOptions.skipFile !== true) {
-          const timestampDifference = Math.round((currentEpochTime - (client?.lastbackup ?? 0)) / 60);
-          if (
-            (commandOptions.skipBlank !== true || (commandOptions.skipBlank === true && client.lastbackup !== 0)) &&
-            client.file_disabled !== true &&
-            timestampDifference >= commandOptions.threshold
-          ) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
-
-        if (commandOptions.skipImage !== true) {
-          const timestampDifference = Math.round((currentEpochTime - (client?.lastbackup_image ?? 0)) / 60);
-          if (
-            (commandOptions.skipBlank !== true ||
-              (commandOptions.skipBlank === true && client.lastbackup_image !== 0)) &&
-            client.image_disabled !== true &&
-            timestampDifference >= commandOptions.threshold
-          ) {
-            matchingClients.push(client);
-            continue;
-          }
-        }
-      }
-
-      processMatchingData(matchingClients, 'clients', commandOptions);
-      printOutput(matchingClients, commandOptions?.format);
+      processMatchingData(staleClientsResponse, 'clients', commandOptions);
+      printOutput(staleClientsResponse, commandOptions?.format);
     });
   });
 
@@ -1175,21 +1158,9 @@ cli.command(
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
   .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
-    makeServerCalls(['activities'], commandOptions).then(() => {
-      const matchingActivities = [];
-
-      for (const activity of activitiesResponse.current) {
-        if (activity.paused === true) {
-          if (commandOptions.client.length > 0 && activity.name !== commandOptions.client) {
-            continue;
-          }
-
-          matchingActivities.push(activity);
-        }
-      }
-
-      processMatchingData(matchingActivities, 'currentActivities', commandOptions);
-      printOutput(matchingActivities, commandOptions?.format);
+    makeServerCalls(['paused-activities'], commandOptions).then(() => {
+      processMatchingData(pausedActivitiesResponse, 'pausedActivities', commandOptions);
+      printOutput(pausedActivitiesResponse, commandOptions?.format);
     });
   });
 
@@ -1218,18 +1189,8 @@ cli.command(
   .option('--client <name:string>', 'Limit usage to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['usage'], commandOptions).then(() => {
-      const matchingUsage = [];
-
-      for (const usage of usageResponse) {
-        if (commandOptions.client.length > 0 && usage.name !== commandOptions.client) {
-          continue;
-        }
-
-        matchingUsage.push(usage);
-      }
-
-      processMatchingData(matchingUsage, 'usage', commandOptions);
-      printOutput(matchingUsage, commandOptions?.format);
+      processMatchingData(usageResponse, 'usage', commandOptions);
+      printOutput(usageResponse, commandOptions?.format);
     });
   });
 
