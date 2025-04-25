@@ -223,6 +223,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       })
       : null;
   } catch (e) {
+    // deno-lint-ignore no-console
     console.error(cliTheme.error(e.message));
     Deno.exit(1);
   }
@@ -386,12 +387,11 @@ const sortClients = function (clients, format, order, reverse) {
  * Sort activities. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
  * @param {Array} activities - The array of activity objects to sort.
- * @param {boolean} last - Flag indicating if it's the last activity.
  * @param {string} format - The format used for normalization.
  * @param {string} order - The sorting order (eta, progress, size, client, time, duration).
  * @param {boolean} reverse - Flag indicating whether to sort in reverse order.
  */
-const sortActivities = function (activities, last, format, order, reverse) {
+const sortActivities = function (activities, format, order, reverse) {
   switch (order) {
     case 'eta':
       activities.sort((a, b) => a.ETA - b.ETA);
@@ -480,48 +480,51 @@ const printOutput = function (data, format) {
   // TODO: || 'raw'?
   if (format !== 'number') {
     for (const element in data) {
-      Object.keys(data[element]).forEach(function (key) {
-        switch (key) {
-          case 'Bytes Done':
-          /* falls through */
-          case 'File Backups':
-          /* falls through */
-          case 'Image Backups':
-          /* falls through */
-          case 'Total':
-          /* falls through */
-          case 'Size':
-            data[element][key] = formatBytes(data[element][key], 2);
-            break;
-          case 'Duration':
-            data[element][key] = ms(data[element][key] * 1000);
-            break;
-          case 'ETA':
-            data[element][key] = data[element][key] <= 0 ? 'n/a' : ms(data[element][key]);
-            break;
-          case 'Starting Time':
-          /* falls through */
-          case 'Last File BUP':
-          /* falls through */
-          case 'Last Image BUP':
-          /* falls through */
-          case 'Last Seen':
-            if (data[element][key] === 0) {
-              data[element][key] = 'never';
-            } else {
-              data[element][key] = new Date(data[element][key] * 1000).toLocaleString(getConfigValue('URBSTAT_LOCALE'));
-            }
-            break;
-          case 'Activity':
-            if (data[element][key] === 0) {
-              data[element][key] = 'none';
-            }
-            break;
-          case 'Progress':
-            data[element][key] = `${data[element][key]}%`;
-            break;
-        }
-      });
+      if (Object.hasOwn(data, element)) {
+        Object.keys(data[element]).forEach(function (key) {
+          switch (key) {
+            case 'Bytes Done':
+            /* falls through */
+            case 'File Backups':
+            /* falls through */
+            case 'Image Backups':
+            /* falls through */
+            case 'Total':
+            /* falls through */
+            case 'Size':
+              data[element][key] = formatBytes(data[element][key], 2);
+              break;
+            case 'Duration':
+              data[element][key] = ms(data[element][key] * 1000);
+              break;
+            case 'ETA':
+              data[element][key] = data[element][key] <= 0 ? 'n/a' : ms(data[element][key]);
+              break;
+            case 'Starting Time':
+            /* falls through */
+            case 'Last File BUP':
+            /* falls through */
+            case 'Last Image BUP':
+            /* falls through */
+            case 'Last Seen':
+              if (data[element][key] === 0) {
+                data[element][key] = 'never';
+              } else {
+                data[element][key] = new Date(data[element][key] * 1000)
+                  .toLocaleString(getConfigValue('URBSTAT_LOCALE'));
+              }
+              break;
+            case 'Activity':
+              if (data[element][key] === 0) {
+                data[element][key] = 'none';
+              }
+              break;
+            case 'Progress':
+              data[element][key] = `${data[element][key]}%`;
+              break;
+          }
+        });
+      }
     }
   }
 
@@ -538,14 +541,17 @@ const printOutput = function (data, format) {
       break;
     case 'list':
       if (data.length > 0) {
-        console.log(data);
+        // deno-lint-ignore no-console
+        console.info(data);
       }
       break;
     case 'number':
-      console.log(data.length);
+      // deno-lint-ignore no-console
+      console.info(data.length);
       break;
     case 'raw':
-      console.log(data);
+      // deno-lint-ignore no-console
+      console.info(data);
       break;
   }
 };
@@ -583,10 +589,10 @@ const processMatchingData = function (data, type, commandOptions) {
         sortClients(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       case 'currentActivities':
-        sortActivities(data, false, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortActivities(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       case 'lastActivities':
-        sortActivities(data, true, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortActivities(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       case 'usage':
         sortUsage(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
@@ -1260,40 +1266,48 @@ cli.command(
             const matchingUsage = [];
             matchingUsage.push(usageResponse.find((element) => element.name === matchingClient[0].name));
 
-            console.log('Status:');
+            // deno-lint-ignore no-console
+            console.info('Status:');
             processMatchingData(matchingClient, 'clients', commandOptions);
             printOutput(matchingClient, commandOptions?.format);
 
-            console.log('Current activities:');
+            // deno-lint-ignore no-console
+            console.info('Current activities:');
             processMatchingData(matchingCurrentActivities, 'currentActivities', commandOptions);
             if (matchingCurrentActivities.length > 0) {
               printOutput(matchingCurrentActivities, commandOptions?.format);
             } else {
               if (commandOptions?.format !== 'raw') {
-                console.log('none');
+                // deno-lint-ignore no-console
+                console.info('none');
               }
             }
 
-            console.log('Last activities:');
+            // deno-lint-ignore no-console
+            console.info('Last activities:');
             processMatchingData(matchingLastActivities, 'lastActivities', commandOptions);
             if (matchingLastActivities.length > 0) {
               printOutput(matchingLastActivities, commandOptions?.format);
             } else {
-              console.log('none');
+              // deno-lint-ignore no-console
+              console.info('none');
             }
 
-            console.log('Usage:');
+            // deno-lint-ignore no-console
+            console.info('Usage:');
             processMatchingData(matchingUsage, 'usage', commandOptions);
             printOutput(matchingUsage, commandOptions?.format);
           } else {
-            console.log(cliTheme.warning('Client not found'));
+            // deno-lint-ignore no-console
+            console.warn(cliTheme.warning('Client not found'));
             Deno.exit(1);
           }
         },
       );
     } else {
       this.showHelp();
-      console.log(cliTheme.error('error: You need to provide "--id" or "--name" option to this command'));
+      // deno-lint-ignore no-console
+      console.error(cliTheme.error('error: You need to provide "--id" or "--name" option to this command'));
       Deno.exit(1);
     }
   });
