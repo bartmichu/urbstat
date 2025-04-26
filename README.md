@@ -147,6 +147,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 ### Notable Changes
 
+- 0.14.2
+  - New commands: `removed-clients`, `outdated-clients`.
+
 - 0.11.0
   - Now that deno compile supports npm modules, I switched to using my `urbackup-server-api` Node.js library.
 
@@ -200,6 +203,10 @@ Get more help about a specific command and its applicable options:
 
   Retrieves OK clients, i.e. clients with OK backup status. Excludes clients marked for removal. Backups finished with issues are treated as OK by default. Required rights: `status(all)`. If you specify "raw" format, the output cannot be sorted or filtered, and property names/values are left unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
+- **outdated-clients**
+
+  Retrieve clients using an outdated version of UrBackup. Excludes clients marked for removal. Required rights: `status(all)`. If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
+
 - **failed-clients**
 
   Retrieves failed clients, i.e. clients with failed backup status or without a recent backup as configured in UrBackup Server. Excludes clients marked for removal. Required rights: `status(all)`. If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
@@ -215,6 +222,10 @@ Get more help about a specific command and its applicable options:
 - **unseen-clients**
 
   Retrieves unseen clients, i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal. Required rights: `status(all)`. If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_unseen_CLIENT`.
+
+- **removed-clients**
+
+  Retrieves clients marked for removal. Required rights: `status(all)`. If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered. Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
 - **online-clients**
 

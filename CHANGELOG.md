@@ -13,6 +13,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 ## Notable Changes
 
+- 0.14.2
+  - New commands: `removed-clients`, `outdated-clients`.
+
 - 0.11.0
   - Now that deno compile supports npm modules, I switched to using my `urbackup-server-api` Node.js library.
 
