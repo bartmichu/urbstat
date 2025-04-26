@@ -13,6 +13,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 ## Notable Changes
 
+- 0.14.3
+  - Update to `urbackup-server-api@^0.90.0` which uses Node fetch API.
+
 - 0.14.2
   - New commands: `removed-clients`, `outdated-clients`.
 
