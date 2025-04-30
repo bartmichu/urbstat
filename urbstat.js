@@ -209,7 +209,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
         includeBlank: commandOptions?.skipBlank !== true,
         includeFileBackups: commandOptions?.skipFile !== true,
         includeImageBackups: commandOptions?.skipImage !== true,
-        timeThreshold: commandOptions?.threshold,
+        timeThreshold: commandOptions?.threshold >= 0 ? commandOptions.threshold : 0,
       })
       : null;
 
@@ -225,7 +225,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       ? await server.getUnseenClients({
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
-        timeThreshold: commandOptions?.threshold,
+        timeThreshold: commandOptions?.threshold >= 0 ? commandOptions.threshold : 0,
       })
       : null;
 
