@@ -132,12 +132,12 @@ let activeClientsResponse;
  * @returns {Promise<void>}
  */
 async function makeServerCalls(requiredCalls, commandOptions) {
+  const url = commandOptions?.url?.length > 0 ? commandOptions.url : getConfigValue('URBSTAT_SERVER_URL');
   const username = commandOptions?.user?.length > 0 ? commandOptions.user : getConfigValue('URBSTAT_SERVER_USERNAME');
-
   const password = commandOptions?.askPass === true ? await Secret.prompt('Enter password') : getConfigValue('URBSTAT_SERVER_PASSWORD');
 
   const server = new UrbackupServer({
-    url: getConfigValue('URBSTAT_SERVER_URL'),
+    url: url,
     username: username,
     password: password,
   });
@@ -673,6 +673,7 @@ const cli = await new Command()
   .globalType('lastActivitiesSortValues', new EnumType(configFallback.URBSTAT_ACTIVITIES_SORT_LAST.acceptedValues))
   .globalType('usageFormatValues', new EnumType(configFallback.URBSTAT_USAGE_FORMAT.acceptedValues))
   .globalType('usageSortValues', new EnumType(configFallback.URBSTAT_USAGE_SORT.acceptedValues))
+  .globalOption('--url <url:string>', 'Server URL.')
   .globalOption('--user <name:string>', 'User name.')
   .globalOption('--ask-pass', 'Ask for connection password.')
   .action(() => {
