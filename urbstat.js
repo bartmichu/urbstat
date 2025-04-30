@@ -16,12 +16,12 @@ const configFallback = {
   URBSTAT_CLIENT_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'raw'] },
   URBSTAT_CLIENTS_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'list', 'number', 'raw'] },
   URBSTAT_CLIENTS_SORT: { defaultValue: 'name', acceptedValues: ['name', 'seen', 'file', 'image'] },
+  URBSTAT_CLIENTS_THRESHOLD_STALE: { defaultValue: 7200 },
+  URBSTAT_CLIENTS_THRESHOLD_UNSEEN: { defaultValue: 10080 },
   URBSTAT_LOCALE: { defaultValue: 'en' },
   URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
   URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
   URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
-  URBSTAT_THRESHOLD_STALE_CLIENT: { defaultValue: 7200 },
-  URBSTAT_THRESHOLD_UNSEEN_CLIENT: { defaultValue: 10080 },
   URBSTAT_USAGE_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'raw'] },
   URBSTAT_USAGE_SORT: { defaultValue: 'total', acceptedValues: ['name', 'file', 'image', 'total'] },
 };
@@ -660,7 +660,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.14.4')
+  .version('0.15.0-unstable')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options like server address and password are set in the urbstat.conf configuration file.')
   .example('Get failed clients, use password from configuration file', 'urbstat failed-clients')
   .example('Get failed clients, ask for password', 'urbstat failed-clients --ask-pass')
@@ -846,11 +846,11 @@ cli.command(
  * Retrieves stale clients, i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output cannot be sorted or filtered and property names/values are left unaltered.
- * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_CLIENT.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_CLIENTS_THRESHOLD_STALE.
  */
 cli.command(
   'stale-clients',
-  'Retrieves stale clients, i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_STALE_CLIENT.',
+  'Retrieves stale clients, i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_CLIENTS_THRESHOLD_STALE.',
 )
   .example('Get stale clients, use default options', 'stale-clients')
   .example('Get the total number of stale clients', 'stale-clients --format "number"')
@@ -864,7 +864,7 @@ cli.command(
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
-  .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', { default: getConfigValue('URBSTAT_THRESHOLD_STALE_CLIENT') })
+  .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', { default: getConfigValue('URBSTAT_CLIENTS_THRESHOLD_STALE') })
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
@@ -907,12 +907,12 @@ cli.command(
  * Retrieves unseen clients, i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.
  * Required rights: status(all).
  * If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
- * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_unseen_CLIENT.
+ * Default options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_CLIENTS_THRESHOLD_UNSEEN.
  */
 cli
   .command(
     'unseen-clients',
-    'Retrieves unseen clients, i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_THRESHOLD_unseen_CLIENT.',
+    'Retrieves unseen clients, i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal.\nRequired rights: status(all).\nIf you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.\nDefault options are configured with: URBSTAT_CLIENTS_FORMAT, URBSTAT_CLIENTS_SORT, URBSTAT_LOCALE, URBSTAT_CLIENTS_THRESHOLD_UNSEEN.',
   )
   .example('Get unseen clients, use default options', 'unseen-clients')
   .example('Get the total number of unseen clients', 'unseen-clients --format "number"')
@@ -925,7 +925,7 @@ cli
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
-  .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', { default: getConfigValue('URBSTAT_THRESHOLD_UNSEEN_CLIENT') })
+  .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', { default: getConfigValue('URBSTAT_CLIENTS_THRESHOLD_UNSEEN') })
   .option('--skip-blank', 'Skip blank clients.')
   .action((commandOptions) => {
     makeServerCalls(['unseen-clients'], commandOptions).then(() => {

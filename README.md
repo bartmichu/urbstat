@@ -148,14 +148,20 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 ### Breaking Changes
 
+- 0.15.0
+  - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
+
 - 0.14.0
-  - Matching stale clients now uses a single common time threshold instead of separate thresholds for files and images. This is specified using the `--threshold` option and the `URBSTAT_THRESHOLD_STALE_CLIENT` configuration option. The previous behavior can still be achieved by combining the `--threshold` option with `--skip-file` and `--skip-image`.
-  - Naming change – "void" clients are now referred to as "unseen" clients. As a result, the option name has changed to `--unseen-clients`, and the corresponding configuration option is now `URBSTAT_THRESHOLD_UNSEEN_CLIENT`.
+  - Matching stale clients now uses a single common time threshold instead of separate thresholds for files and images. This is specified using the `--threshold` option and the `URBSTAT_CLIENTS_THRESHOLD_STALE` configuration option. The previous behavior can still be achieved by combining the `--threshold` option with `--skip-file` and `--skip-image`.
+  - Naming change – "void" clients are now referred to as "unseen" clients. As a result, the option name has changed to `--unseen-clients`, and the corresponding configuration option is now `URBSTAT_CLIENTS_THRESHOLD_UNSEEN`.
 
 - 0.10.0
   - The configuration file name has been changed from `.env` to `urbstat.conf`.
 
 ### Notable Changes
+
+- 0.15.0
+  - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
 
 - 0.14.3
   - Update to `urbackup-server-api@^0.90.0` which uses Node fetch API.
@@ -244,7 +250,7 @@ Get more help about a specific command and its applicable options:
 
   Retrieves stale clients, i.e. clients without a recent backup as configured in urbstat. Excludes clients marked for removal. Required rights: `status(all)`. If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
 
-  Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_STALE_CLIENT`.
+  Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_CLIENTS_THRESHOLD_STALE`.
 
   Options: `format`, `sort`, `reverse`, `max`, `threshold`, `skip-file`, `skip-image`, `skip-blank`.
 
@@ -260,7 +266,7 @@ Get more help about a specific command and its applicable options:
 
   Retrieves unseen clients, i.e. clients not seen for a long time as configured in urbstat. Excludes clients marked for removal. Required rights: `status(all)`. If you specify "raw" format then output can not be sorted or filtered and property names/values are left unaltered.
 
-  Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_THRESHOLD_unseen_CLIENT`.
+  Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_CLIENTS_THRESHOLD_UNSEEN`.
 
   Options: `format`, `sort`, `reverse`, `max`, `threshold`, `skip-blank`.
 
