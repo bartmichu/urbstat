@@ -145,8 +145,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
   try {
     statusResponse = requiredCalls.includes('status')
       ? await server.getStatus({
-        clientId: commandOptions?.id,
-        clientName: commandOptions?.name,
+        clientId: typeof commandOptions?.id === 'number' ? commandOptions.id : undefined,
+        clientName: commandOptions?.name?.length > 0 ? commandOptions.name : undefined,
         includeRemoved: true,
       })
       : null;
@@ -297,29 +297,25 @@ const normalizeClient = function (client, format) {
         lastbackup,
         image_ok,
         image_disabled,
-        last_imagebackup_issues,
         lastbackup_image,
         online,
         lastseen,
         status,
       },
     ) {
-      // TODO: file_disabled, last_imagebackup_issues ??
       if (file_disabled === true) {
         file_ok = 'disabled';
       } else if (file_ok === true) {
         file_ok = last_filebackup_issues === 0 ? 'ok' : 'issues';
       } else {
-        // TODO: no recent === failed?
         file_ok = 'failed';
       }
 
       if (image_disabled === true) {
         image_ok = 'disabled';
       } else if (image_ok === true) {
-        image_ok = last_imagebackup_issues === 0 ? 'ok' : 'issues';
+        image_ok = 'ok';
       } else {
-        // TODO: no recent === failed?
         image_ok = 'failed';
       }
 
@@ -711,8 +707,8 @@ cli.command(
   'Get raw response of "status" API call. Matches all clients, including those marked for removal.\nRequired rights: status(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-status')
-  .action((commandOptions) => {
-    makeServerCalls(['status'], commandOptions).then(() => {
+  .action(() => {
+    makeServerCalls(['status']).then(() => {
       printOutput(statusResponse, 'raw');
     });
   });
@@ -727,8 +723,8 @@ cli.command(
   'Get raw response of "activities" API call. Matches all clients, including those marked for removal.\nRequired rights: progress(all), lastacts(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-activities')
-  .action((commandOptions) => {
-    makeServerCalls(['activities'], commandOptions).then(() => {
+  .action(() => {
+    makeServerCalls(['activities']).then(() => {
       printOutput(activitiesResponse, 'raw');
     });
   });
@@ -743,8 +739,8 @@ cli.command(
   'Get raw response of "usage" API call. Matches all clients, including those marked for removal.\nRequired rights: piegraph(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-usage')
-  .action((commandOptions) => {
-    makeServerCalls(['usage'], commandOptions).then(() => {
+  .action(() => {
+    makeServerCalls(['usage']).then(() => {
       printOutput(usageResponse, 'raw');
     });
   });
@@ -1062,7 +1058,7 @@ cli.command(
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
-  .option('--group-name <name:string>', 'Limit clients to specified group only.', { default: '' })
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['active-clients'], commandOptions).then(() => {
       processMatchingData(activeClientsResponse, 'clients', commandOptions);
