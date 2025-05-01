@@ -19,6 +19,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 - 0.15.0
   - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
   - Allow server URL to be set through the `--url` option.
+  - Implement `--group-name` option to *client commands.
 
 - 0.14.3
   - Update to `urbackup-server-api@^0.90.0` which uses Node fetch API.

@@ -174,12 +174,16 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     allClientsResponse = requiredCalls.includes('all-clients')
       ? await server.getClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: true,
       })
       : null;
 
     okClientsResponse = requiredCalls.includes('ok-clients')
       ? await server.getOkClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeFileBackups: commandOptions?.skipFile !== true,
         includeImageBackups: commandOptions?.skipImage !== true,
@@ -189,12 +193,16 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     outdatedClientsResponse = requiredCalls.includes('outdated-clients')
       ? await server.getOutdatedClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
       })
       : null;
 
     failedClientsResponse = requiredCalls.includes('failed-clients')
       ? await server.getFailedClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
         includeFileBackups: commandOptions?.skipFile !== true,
@@ -205,6 +213,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     staleClientsResponse = requiredCalls.includes('stale-clients')
       ? await server.getStaleClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
         includeFileBackups: commandOptions?.skipFile !== true,
@@ -215,6 +225,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     blankClientsResponse = requiredCalls.includes('blank-clients')
       ? await server.getBlankClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeFileBackups: commandOptions?.skipFile !== true,
         includeImageBackups: commandOptions?.skipImage !== true,
@@ -223,6 +235,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     unseenClientsResponse = requiredCalls.includes('unseen-clients')
       ? await server.getUnseenClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
         timeThreshold: commandOptions?.threshold >= 0 ? commandOptions.threshold : 0,
@@ -233,6 +247,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     onlineClientsResponse = requiredCalls.includes('online-clients')
       ? await server.getOnlineClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
       })
@@ -240,6 +256,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     offlineClientsResponse = requiredCalls.includes('offline-clients')
       ? await server.getOfflineClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
         includeBlank: commandOptions?.skipBlank !== true,
       })
@@ -247,6 +265,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     activeClientsResponse = requiredCalls.includes('active-clients')
       ? await server.getActiveClients({
+        // TODO: Workaround for upstream bug that does not allow an empty string as a value https://github.com/c4spar/deno-cliffy/issues/665 https://github.com/c4spar/deno-cliffy/issues/731
+        groupName: commandOptions?.groupName === true ? '' : commandOptions?.groupName,
         includeRemoved: false,
       })
       : null;
@@ -749,6 +769,7 @@ cli.command(
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['all-clients'], commandOptions).then(() => {
       processMatchingData(allClientsResponse, 'clients', commandOptions);
@@ -781,6 +802,7 @@ cli
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--strict', 'Do not treat backups finished with issues as being OK.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['ok-clients'], commandOptions).then(() => {
       processMatchingData(okClientsResponse, 'clients', commandOptions);
@@ -806,6 +828,7 @@ cli.command(
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['outdated-clients'], commandOptions).then(() => {
       processMatchingData(outdatedClientsResponse, 'clients', commandOptions);
@@ -836,6 +859,7 @@ cli.command(
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['failed-clients'], commandOptions).then(() => {
       processMatchingData(failedClientsResponse, 'clients', commandOptions);
@@ -869,6 +893,7 @@ cli.command(
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['stale-clients'], commandOptions).then(() => {
       processMatchingData(staleClientsResponse, 'clients', commandOptions);
@@ -897,6 +922,7 @@ cli.command(
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['blank-clients'], commandOptions).then(() => {
       processMatchingData(blankClientsResponse, 'clients', commandOptions);
@@ -928,6 +954,7 @@ cli
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--threshold <minutes:integer>', 'Set time threshold in minutes.', { default: getConfigValue('URBSTAT_CLIENTS_THRESHOLD_UNSEEN') })
   .option('--skip-blank', 'Skip blank clients.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['unseen-clients'], commandOptions).then(() => {
       processMatchingData(unseenClientsResponse, 'clients', commandOptions);
@@ -953,6 +980,7 @@ cli.command(
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['removed-clients'], commandOptions).then(() => {
       processMatchingData(removedClientsResponse, 'clients', commandOptions);
@@ -980,6 +1008,7 @@ cli.command(
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--skip-blank', 'Skip blank clients.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['online-clients'], commandOptions).then(() => {
       processMatchingData(onlineClientsResponse, 'clients', commandOptions);
@@ -1007,6 +1036,7 @@ cli.command(
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
   .option('--skip-blank', 'Skip blank clients.')
+  .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['offline-clients'], commandOptions).then(() => {
       processMatchingData(offlineClientsResponse, 'clients', commandOptions);
@@ -1032,6 +1062,7 @@ cli.command(
   .option('--sort <field:clientsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_CLIENTS_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
+  .option('--group-name <name:string>', 'Limit clients to specified group only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['active-clients'], commandOptions).then(() => {
       processMatchingData(activeClientsResponse, 'clients', commandOptions);
