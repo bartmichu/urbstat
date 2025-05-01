@@ -1,15 +1,22 @@
 # ---------------------------------------------------------------------------
 # URBSTAT Configuration File
 #
+# - The configuration file is optional. If it is not present, hardcoded
+#   default values are used.
+#
+# - You can use [this example file](https://raw.githubusercontent.com/bartmichu/urbstat/main/urbstat.conf.example)
+#   as a baseline for your configuration file.
+#
 # - Ensure the configuration file is named "urbstat.conf" and is located in
 #   the same directory as the downloaded binary file.
 #
 # - If you are not using the default installation (localhost:55414, admin, no
 #   password), you must set URBSTAT_SERVER_URL, URBSTAT_SERVER_USERNAME,
 #   and URBSTAT_SERVER_PASSWORD in the configuration file.
-#   Alternatively, username can be passed with "--user" option and password
-#   can be specified interactively at runtime when "--ask-pass" option is
-#   provided. For details, see: "urbstat --help".
+#   Alternatively, the server URL can be passed using the --url option, the
+#   username with the --user option, and the password can be specified
+#   interactively at runtime when the --ask-pass option is provided.
+#   For details, see: "urbstat --help".
 #
 # - Many settings can also be adjusted at runtime through command-line
 #   options. For more information, please refer to
