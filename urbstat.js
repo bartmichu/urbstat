@@ -153,7 +153,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     activitiesResponse = requiredCalls.includes('activities')
       ? await server.getActivities({
-        clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
+        clientName: commandOptions?.clientName?.length > 0 ? commandOptions.clientName : undefined,
         includeCurrent: true,
         includeLast: true,
         includePaused: commandOptions?.skipPaused !== true,
@@ -162,13 +162,13 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     pausedActivitiesResponse = requiredCalls.includes('paused-activities')
       ? await server.getPausedActivities({
-        clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
+        clientName: commandOptions?.clientName?.length > 0 ? commandOptions.clientName : undefined,
       })
       : null;
 
     usageResponse = requiredCalls.includes('usage')
       ? await server.getUsage({
-        clientName: commandOptions?.client?.length > 0 ? commandOptions.client : undefined,
+        clientName: commandOptions?.clientName?.length > 0 ? commandOptions.clientName : undefined,
       })
       : null;
 
@@ -1085,13 +1085,13 @@ cli.command(
   .example('Get a sorted table', 'current-activities --format "table" --sort "progress"')
   .example('Get a sorted table, skip paused activities', 'current-activities --format "table" --sort "progress" --skip-paused')
   .example('Get three activities with longest ETA', 'current-activities --format "table" --sort "eta" --max 3 --reverse')
-  .example('Get CURRENT activities of selected client', 'current-activities --format "table" --sort "eta" --client "office"')
+  .example('Get CURRENT activities of selected client', 'current-activities --format "table" --sort "eta" --client-name "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', { default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT') })
   .option('--sort <field:currentActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format. ")
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
   .option('--skip-paused', 'Skip paused activities.')
-  .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       processMatchingData(activitiesResponse.current, 'currentActivities', commandOptions);
@@ -1114,12 +1114,12 @@ cli.command(
   .example('Get a sorted table', 'last-activities --format "table" --sort "progress"')
   .example('Get three activities with biggest size', 'last-activities --format "table" --sort "size" --max 3 --reverse')
   .example('Get three longest activities', 'last-activities --format "table" --sort "duration" --max 3 --reverse')
-  .example('Get LAST activities of selected client', 'last-activities --format "table" --sort "time" --client "office"')
+  .example('Get LAST activities of selected client', 'last-activities --format "table" --sort "time" --client-name "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', { default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT') })
   .option('--sort <field:lastActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_ACTIVITIES_SORT_LAST') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
-  .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       processMatchingData(activitiesResponse.last, 'lastActivities', commandOptions);
@@ -1141,12 +1141,12 @@ cli.command(
   .example('Get the total number of paused activities', 'paused-activities --format "number"')
   .example('Get a sorted table', 'paused-activities --format "table" --sort "progress"')
   .example('Get 3 activities with biggest size', 'paused-activities --format "table" --sort "size" --max 3 --reverse')
-  .example('Get paused activities of a client', 'paused-activities --format "table" --sort "time" --client "office"')
+  .example('Get paused activities of a client', 'paused-activities --format "table" --sort "time" --client-name "office"')
   .option('--format <format:activitiesFormatValues>', 'Change the output format.', { default: getConfigValue('URBSTAT_ACTIVITIES_FORMAT') })
   .option('--sort <field:currentActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
-  .option('--client <name:string>', 'Limit activities to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit activities to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['paused-activities'], commandOptions).then(() => {
       processMatchingData(pausedActivitiesResponse, 'pausedActivities', commandOptions);
@@ -1167,12 +1167,12 @@ cli.command(
   .example('Get storage usage, use default options', 'usage')
   .example('Get a sorted table', 'usage --format "table" --sort "name"')
   .example('Get three clients with biggest usage', 'usage --format "table" --sort "total" --max 3 --reverse')
-  .example('Get storage usage of selected client', 'usage --format "table" --client "office"')
+  .example('Get storage usage of selected client', 'usage --format "table" --client-name "office"')
   .option('--format <format:usageFormatValues>', 'Change the output format.', { default: getConfigValue('URBSTAT_USAGE_FORMAT') })
   .option('--sort <field:usageSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_USAGE_SORT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of clients, 0 means no limit.', { default: 0 })
-  .option('--client <name:string>', 'Limit usage to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit usage to specified client only.', { default: '' })
   .action((commandOptions) => {
     makeServerCalls(['usage'], commandOptions).then(() => {
       processMatchingData(usageResponse, 'usage', commandOptions);
