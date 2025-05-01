@@ -227,7 +227,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `group-name`.
 
 - **ok-clients**
 
@@ -235,7 +235,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `skip-file`, `skip-image`, `strict`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `skip-file`, `skip-image`, `strict`, `group-name`.
 
 - **outdated-clients**
 
@@ -243,7 +243,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `group-name`.
 
 - **failed-clients**
 
@@ -251,7 +251,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `skip-file`, `skip-image`, `skip-blank`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `skip-file`, `skip-image`, `skip-blank`, `group-name`.
 
 - **stale-clients**
 
@@ -259,7 +259,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_CLIENTS_THRESHOLD_STALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `threshold`, `skip-file`, `skip-image`, `skip-blank`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `threshold`, `skip-file`, `skip-image`, `skip-blank`, `group-name`.
 
 - **blank-clients**
 
@@ -267,7 +267,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `skip-file`, `skip-image`, `group`,
+  Options: `format`, `sort`, `reverse`, `max`, `skip-file`, `skip-image`, `group-name`,
 
 - **unseen-clients**
 
@@ -275,7 +275,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`, `URBSTAT_CLIENTS_THRESHOLD_UNSEEN`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `threshold`, `skip-blank`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `threshold`, `skip-blank`, `group-name`.
 
 - **removed-clients**
 
@@ -283,7 +283,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `group-name`.
 
 - **online-clients**
 
@@ -291,7 +291,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `skip-blank`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `skip-blank`, `group-name`.
 
 - **offline-clients**
 
@@ -299,7 +299,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `skip-blank`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `skip-blank`, `group-name`.
 
 - **active-clients**
 
@@ -307,7 +307,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `group`.
+  Options: `format`, `sort`, `reverse`, `max`, `group-name`.
 
 - **current-activities**
 
