@@ -153,6 +153,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     activitiesResponse = requiredCalls.includes('activities')
       ? await server.getActivities({
+        clientId: typeof commandOptions?.clientId === 'number' ? commandOptions.clientId : undefined,
         clientName: commandOptions?.clientName?.length > 0 ? commandOptions.clientName : undefined,
         includeCurrent: true,
         includeLast: true,
@@ -162,6 +163,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
     pausedActivitiesResponse = requiredCalls.includes('paused-activities')
       ? await server.getPausedActivities({
+        clientId: typeof commandOptions?.clientId === 'number' ? commandOptions.clientId : undefined,
         clientName: commandOptions?.clientName?.length > 0 ? commandOptions.clientName : undefined,
       })
       : null;
@@ -1087,7 +1089,8 @@ cli.command(
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format. ")
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
   .option('--skip-paused', 'Skip paused activities.')
-  .option('--client-name <name:string>', 'Limit activities to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit activities to specified client only.')
+  .option('--client-id <Id:integer>', 'Limit activities to specified client only.', { conflicts: ['client-name'] })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       processMatchingData(activitiesResponse.current, 'currentActivities', commandOptions);
@@ -1115,7 +1118,8 @@ cli.command(
   .option('--sort <field:lastActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_ACTIVITIES_SORT_LAST') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
-  .option('--client-name <name:string>', 'Limit activities to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit activities to specified client only.')
+  .option('--client-id <Id:integer>', 'Limit activities to specified client only.', { conflicts: ['client-name'] })
   .action((commandOptions) => {
     makeServerCalls(['activities'], commandOptions).then(() => {
       processMatchingData(activitiesResponse.last, 'lastActivities', commandOptions);
@@ -1142,7 +1146,8 @@ cli.command(
   .option('--sort <field:currentActivitiesSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getConfigValue('URBSTAT_ACTIVITIES_SORT_CURRENT') })
   .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
   .option('--max <number:integer>', 'Show only <number> of activities, 0 means no limit.', { default: 0 })
-  .option('--client-name <name:string>', 'Limit activities to specified client only.', { default: '' })
+  .option('--client-name <name:string>', 'Limit activities to specified client only.')
+  .option('--client-id <Id:integer>', 'Limit activities to specified client only.', { conflicts: ['client-name'] })
   .action((commandOptions) => {
     makeServerCalls(['paused-activities'], commandOptions).then(() => {
       processMatchingData(pausedActivitiesResponse, 'pausedActivities', commandOptions);

@@ -152,7 +152,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 - 0.15.0
   - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
-  - Renamed the `--client` option to `--client-name` in *activities commands to allow for future implementation of `--client-id`.
+  - Renamed the `--client` option to `--client-name` in *activities commands to allow for implementation of `--client-id`.
 
 - 0.14.0
   - Matching stale clients now uses a single common time threshold instead of separate thresholds for files and images. This is specified using the `--threshold` option and the `URBSTAT_THRESHOLD_STALE_CLIENT` configuration option. The previous behavior can still be achieved by combining the `--threshold` option with `--skip-file` and `--skip-image`.
@@ -167,7 +167,8 @@ This changelog starts at version `0.10.0` and includes a selection of significan
   - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
   - Allow server URL to be set through the `--url` option.
   - Implement `--group-name` option to *client commands.
-  - Renamed the `--client` option to `--client-name` in *activities commands to allow for future implementation of `--client-id`.
+  - Renamed the `--client` option to `--client-name` in *activities commands to allow for implementation of `--client-id`.
+  - Implement `--client-id` option to *activities commands.
 
 - 0.14.3
   - Update to `urbackup-server-api@^0.90.0` which uses Node fetch API.
@@ -319,7 +320,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_ACTIVITIES_FORMAT`, `URBSTAT_ACTIVITIES_SORT_CURRENT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `skip-paused`, `client-name`.
+  Options: `format`, `sort`, `reverse`, `max`, `skip-paused`, `client-name`, `client-id`.
 
 - **last-activities**
 
@@ -327,7 +328,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_ACTIVITIES_FORMAT`, `URBSTAT_ACTIVITIES_SORT_LAST`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `client-name`.
+  Options: `format`, `sort`, `reverse`, `max`, `client-name`, `client-id`.
 
 - **paused-activities**
 
@@ -335,7 +336,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured with: `URBSTAT_ACTIVITIES_FORMAT`, `URBSTAT_ACTIVITIES_SORT_CURRENT`, `URBSTAT_LOCALE`.
 
-  Options: `format`, `sort`, `reverse`, `max`, `client-name`.
+  Options: `format`, `sort`, `reverse`, `max`, `client-name`, `client-id`.
 
 - **usage**
 
