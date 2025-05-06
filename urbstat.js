@@ -132,12 +132,19 @@ let activeClientsResponse;
  * @returns {Promise<void>}
  */
 async function makeServerCalls(requiredCalls, commandOptions) {
-  const url = commandOptions?.url?.length > 0 ? commandOptions.url : getConfigValue('URBSTAT_SERVER_URL');
-  const username = commandOptions?.user?.length > 0 ? commandOptions.user : getConfigValue('URBSTAT_SERVER_USERNAME');
-  const password = commandOptions?.askPass === true ? await Secret.prompt('Enter password') : getConfigValue('URBSTAT_SERVER_PASSWORD');
+  const urlString = commandOptions?.url?.length > 0 ? commandOptions.url : getSettings('URBSTAT_SERVER_URL');
+  if (!URL.canParse(urlString)) {
+    // deno-lint-ignore no-console
+    console.log(cliTheme.error('error: Invalid URL'));
+    Deno.exit(1);
+  }
+
+  const url = new URL(urlString);
+  const username = commandOptions?.user?.length > 0 ? commandOptions.user : getSettings('URBSTAT_SERVER_USERNAME');
+  const password = commandOptions?.askPass === true ? await Secret.prompt('Enter password') : getSettings('URBSTAT_SERVER_PASSWORD');
 
   const server = new UrbackupServer({
-    url: url,
+    url: url.href,
     username: username,
     password: password,
   });
