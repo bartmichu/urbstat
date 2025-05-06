@@ -716,8 +716,8 @@ cli.command(
   'Get raw response of "status" API call. Matches all clients, including those marked for removal.\nRequired rights: status(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-status')
-  .action(() => {
-    makeServerCalls(['status']).then(() => {
+  .action((commandOptions) => {
+    makeServerCalls(['status'], commandOptions).then(() => {
       printOutput(statusResponse, 'raw');
     });
   });
@@ -732,8 +732,8 @@ cli.command(
   'Get raw response of "activities" API call. Matches all clients, including those marked for removal.\nRequired rights: progress(all), lastacts(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-activities')
-  .action(() => {
-    makeServerCalls(['activities']).then(() => {
+  .action((commandOptions) => {
+    makeServerCalls(['activities'], commandOptions).then(() => {
       printOutput(activitiesResponse, 'raw');
     });
   });
@@ -748,8 +748,8 @@ cli.command(
   'Get raw response of "usage" API call. Matches all clients, including those marked for removal.\nRequired rights: piegraph(all).\nRaw responses cannot be sorted, filtered, etc. Property names and values are left unaltered.',
 )
   .example('Get raw response', 'raw-usage')
-  .action(() => {
-    makeServerCalls(['usage']).then(() => {
+  .action((commandOptions) => {
+    makeServerCalls(['usage', commandOptions]).then(() => {
       printOutput(usageResponse, 'raw');
     });
   });
