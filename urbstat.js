@@ -29,6 +29,8 @@ const fallbackSettings = {
   URBSTAT_SERVER_USERNAME: { defaultValue: 'admin' },
   URBSTAT_USAGE_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'raw'] },
   URBSTAT_USAGE_SORT: { defaultValue: 'total', acceptedValues: ['name', 'file', 'image', 'total'] },
+  URBSTAT_USERS_SORT: { defaultValue: 'name', acceptedValues: ['name', 'id'] },
+  URBSTAT_USERS_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'list', 'number', 'raw'] },
 };
 
 /**
@@ -125,6 +127,11 @@ let offlineClientsResponse;
  * The active-clients response from the server.
  */
 let activeClientsResponse;
+
+/**
+ * The users response from the server.
+ */
+let usersResponse;
 
 /**
  * Make the required API calls to the UrBackup Server.
@@ -281,6 +288,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
         includeRemoved: false,
       })
       : null;
+
+    usersResponse = requiredCalls.includes('users') ? await server.getUsers({}) : null;
   } catch (error) {
     // deno-lint-ignore no-console
     console.log(cliTheme.error(error.message));
@@ -411,6 +420,27 @@ const normalizeUsage = function (usage, format) {
 };
 
 /**
+ * Normalizes a user object for further use in the application.
+ *
+ * @param {Object} user - The user object to normalize.
+ * @param {string} format - The desired output format. If the format is 'raw', the original object is returned unchanged.
+ * @returns {Object} The normalized user object.
+ */
+const normalizeUser = function (user, format) {
+  if (format === 'raw') {
+    return user;
+  } else {
+    return (function ({ id, name, rights }) {
+      return ({
+        'User Id': id,
+        'User Name': name,
+        'User Rights': rights,
+      });
+    })(user);
+  }
+};
+
+/**
  * Sorts an array of client objects. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
  *
@@ -507,6 +537,30 @@ const sortUsage = function (usages, format, order, reverse) {
 };
 
 /**
+ * Sorts an array of user objects. This function sorts the elements of an array in place.
+ * NOTE: Sorting must be done after normalization.
+ *
+ * @param {Array} users - The array of user objects to sort.
+ * @param {string} format - The format used for normalization.
+ * @param {string} order - The sorting order (name, id).
+ * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
+ */
+const sortUsers = function (users, format, order, reverse) {
+  switch (order) {
+    case 'name':
+      users.sort((a, b) => a['User Name'].localeCompare(b['User Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
+      break;
+    case 'id':
+      users.sort((a, b) => a['User Id'] - b['User Id']);
+      break;
+  }
+
+  if (reverse === true && format !== 'number') {
+    users.reverse();
+  }
+};
+
+/**
  * Prints data to the console based on the specified format.
  *
  * @param {Array} data - The data to print.
@@ -567,6 +621,9 @@ const printOutput = function (data, format) {
           case 'Progress':
             item[key] = `${item[key]}%`;
             break;
+          case 'User Rights':
+            item[key] = JSON.stringify(item[key]);
+            break;
         }
       });
     });
@@ -626,6 +683,9 @@ const processMatchingData = function (data, type, commandOptions) {
       case 'usage':
         data[index] = normalizeUsage(element, commandOptions?.format);
         break;
+      case 'users':
+        data[index] = normalizeUser(element, commandOptions?.format);
+        break;
       default:
         break;
     }
@@ -644,6 +704,9 @@ const processMatchingData = function (data, type, commandOptions) {
         break;
       case 'usage':
         sortUsage(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        break;
+      case 'users':
+        sortUsers(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       default:
         break;
@@ -670,10 +733,11 @@ const processMatchingData = function (data, type, commandOptions) {
       }
     }
 
-    if (type === 'usage') {
+    if (type === 'users') {
       switch (commandOptions?.format) {
-        case 'list':
-          data[index] = element['Client Name'];
+        case 'list': // NOTE: falls through
+        case 'number':
+          data[index] = element['User Name'];
           break;
       }
     }
@@ -685,7 +749,7 @@ const processMatchingData = function (data, type, commandOptions) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.16.0')
+  .version('0.17.0')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options, such as server address and password, are set in the `urbstat.conf` configuration file.')
   .example('Get failed clients (uses password from configuration file)', 'urbstat failed-clients')
   .example('Get failed clients (prompts for password)', 'urbstat failed-clients --ask-pass')
@@ -698,6 +762,8 @@ const cli = await new Command()
   .globalType('lastActivitiesSortValues', new EnumType(fallbackSettings.URBSTAT_ACTIVITIES_SORT_LAST.acceptedValues))
   .globalType('usageFormatValues', new EnumType(fallbackSettings.URBSTAT_USAGE_FORMAT.acceptedValues))
   .globalType('usageSortValues', new EnumType(fallbackSettings.URBSTAT_USAGE_SORT.acceptedValues))
+  .globalType('usersFormatValues', new EnumType(fallbackSettings.URBSTAT_USERS_FORMAT.acceptedValues))
+  .globalType('usersSortValues', new EnumType(fallbackSettings.URBSTAT_USERS_SORT.acceptedValues))
   .globalOption('--url <url:string>', 'Server URL.')
   .globalOption('--user <name:string>', 'User name.')
   .globalOption('--ask-pass', 'Ask for connection password.')
@@ -1258,6 +1324,31 @@ cli.command(
       console.log(cliTheme.error('error: You need to provide "--id" or "--name" option to this command'));
       Deno.exit(1);
     }
+  });
+
+/**
+ * Retrieves users. By default, all users are returned, but you can retrieve a specific user by specifying an ID or name.
+ * Required rights: `usermod(all)`, `settings(all)`.
+ * If the 'raw' format is specified, output cannot be sorted or filtered, and property names and values are returned as-is.
+ * Default options are configured using: `URBSTAT_USERS_SORT`, `URBSTAT_USERS_FORMAT`.
+ */
+cli.command(
+  'users',
+  "Retrieves users. By default, all users are returned, but you can retrieve a specific user by specifying an ID or name.\nRequired rights: `usermod(all)`, `settings(all)`.\nIf the 'raw' format is specified, output cannot be sorted or filtered, and property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_USERS_SORT`, `URBSTAT_USERS_FORMAT`.",
+)
+  .example('Get all users (uses default options)', 'users')
+  .example("Get information for the user named 'admin'", 'user --name "admin"')
+  .option('--format <format:usersFormatValues>', 'Change the output format.', { default: getSettings('URBSTAT_USERS_FORMAT') })
+  .option('--sort <field:usersSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getSettings('URBSTAT_USERS_SORT') })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of users, 0 means no limit.', { default: 0 })
+  .option('--id <Id:integer>', "User's Id Number.", { conflicts: ['name'] })
+  .option('--name <name:string>', "User's Name.")
+  .action((commandOptions) => {
+    makeServerCalls(['users'], commandOptions).then(() => {
+      processMatchingData(usersResponse, 'users', commandOptions);
+      printOutput(usersResponse, commandOptions?.format);
+    });
   });
 
 cli.parse(Deno.args);

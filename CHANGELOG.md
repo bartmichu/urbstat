@@ -17,6 +17,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 ## Notable Changes
 
+- 0.17.0
+  - Implement the `users` command to retrieve a list of users, and add the `URBSTAT_USERS_SORT` and `URBSTAT_USERS_FORMAT` settings.
+
 - 0.15.0
   - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
   - Allow server URL to be set through the `--url` option.
