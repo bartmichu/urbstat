@@ -4,7 +4,6 @@ import { load } from '@std/dotenv';
 import { Secret } from '@cliffy/prompt';
 import { Table } from '@cliffy/table';
 import { UrbackupServer } from 'urbackup-server-api';
-import ms from 'ms';
 
 /**
  * Common text style definitions for CLI messages.
@@ -528,6 +527,27 @@ const printOutput = function (data, format) {
     return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + units[unitIndex];
   };
 
+  /**
+   * Formats a duration in seconds into a human-readable string.
+   *
+   * @param {number} seconds - The duration in seconds.
+   * @param {string} [style='digital'] - The formatting style to use.
+   * @returns {string} The formatted duration string.
+   */
+  function formatDuration(seconds, style = 'digital') {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    const formatter = new Intl.DurationFormat(getSettings('URBSTAT_LOCALE'), { style });
+
+    return formatter.format({
+      hours,
+      minutes,
+      seconds: remainingSeconds,
+    });
+  }
+
   if (format !== 'number' && format !== 'raw') {
     data.forEach((item) => {
       Object.keys(item).forEach(function (key) {
@@ -540,10 +560,11 @@ const printOutput = function (data, format) {
             item[key] = formatBytes(item[key], 2);
             break;
           case 'Duration':
-            item[key] = ms(item[key] * 1000);
+            item[key] = formatDuration(item[key]);
             break;
           case 'ETA':
-            item[key] = item[key] <= 0 ? 'n/a' : ms(item[key]);
+            // TODO: eta_ms < 0
+            item[key] = item[key] <= 0 ? 'n/a' : formatDuration(item[key] * 1000);
             break;
           case 'Starting Time': // NOTE: falls through
           case 'Last File BUP': // NOTE: falls through

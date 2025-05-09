@@ -164,6 +164,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 ### Notable Changes
 
 - 0.17.0
+  - Removed `npm:ms` dependency.
   - Implement the `users` command to retrieve a list of users, and add the `URBSTAT_USERS_SORT` and `URBSTAT_USERS_FORMAT` settings.
   - Implement the `groups` command to retrieve a list of groups, and add the `URBSTAT_GROUPS_SORT` and `URBSTAT_GROUPS_FORMAT` settings.
 
@@ -482,7 +483,6 @@ These first-party modules are utilized by `urbstat`:
 These third-party modules are utilized by `urbstat`:
 
 - Cliffy <https://cliffy.io>
-- ms <https://github.com/vercel/ms>
 
 ## License
 
