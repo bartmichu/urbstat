@@ -470,146 +470,35 @@ const normalizeGroup = function (group, format) {
 };
 
 /**
- * Sorts an array of client objects. This function sorts the elements of an array in place.
+ * Sorts an array of objects. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
  *
- * @param {Array} clients - The array of client objects to sort.
- * @param {string} format - The format used for normalization.
- * @param {string} order - The sorting order (name, seen, file, image).
+ * @param {Array} elements - The array of elements (objects) to sort.
+ * @param {string} outputFormat - The output format.
+ * @param {string} order - The sorting order key.
  * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
+ * @param {Object} orderToProperty - A mapping of sorting order keys to object property names used for sorting.
  */
-const sortClients = function (clients, format, order, reverse) {
-  switch (order) {
-    case 'name':
-      clients.sort((a, b) => a['Client Name'].localeCompare(b['Client Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
-      break;
-    case 'seen':
-      clients.sort((a, b) => a['Last Seen'] - b['Last Seen']);
-      break;
-    case 'file':
-      clients.sort((a, b) => a['Last File BUP'] - b['Last File BUP']);
-      break;
-    case 'image':
-      clients.sort((a, b) => a['Last Image BUP'] - b['Last Image BUP']);
-      break;
+const sortElements = function (elements, outputFormat, order, reverse, orderToProperty) {
+  const property = orderToProperty[order];
+
+  if (typeof property === 'undefined') {
+    return;
   }
 
-  if (reverse === true && format !== 'number') {
-    clients.reverse();
-  }
-};
+  elements.sort((a, b) => {
+    const valueA = a[property];
+    const valueB = b[property];
 
-/**
- * Sorts an array of activity objects. This function sorts the elements of an array in place.
- * NOTE: Sorting must be done after normalization.
- *
- * @param {Array} activities - The array of activity objects to sort.
- * @param {string} format - The format used for normalization.
- * @param {string} order - The sorting order (eta, progress, size, client, time, duration).
- * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
- */
-const sortActivities = function (activities, format, order, reverse) {
-  switch (order) {
-    case 'eta':
-      activities.sort((a, b) => a.ETA - b.ETA);
-      break;
-    case 'progress':
-      activities.sort((a, b) => a.Progress - b.Progress);
-      break;
-    case 'size':
-      activities.sort((a, b) => a.Size - b.Size);
-      break;
-    case 'client':
-      activities.sort((a, b) => a['Client Name'].localeCompare(b['Client Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
-      break;
-    case 'time':
-      activities.sort((a, b) => a['Starting Time'] - b['Starting Time']);
-      break;
-    case 'duration':
-      activities.sort((a, b) => a.Duration - b.Duration);
-      break;
-  }
+    if (typeof valueA === 'string' && typeof valueB === 'string') {
+      return valueA.localeCompare(valueB, getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' });
+    } else if (typeof valueA === 'number' && typeof valueB === 'number') {
+      return valueA - valueB;
+    }
+  });
 
-  if (reverse === true && format !== 'number') {
-    activities.reverse();
-  }
-};
-
-/**
- * Sorts an array of usage objects. This function sorts the elements of an array in place.
- * NOTE: Sorting must be done after normalization.
- *
- * @param {Array} usages - The array of usage objects to sort.
- * @param {string} format - The format used for normalization.
- * @param {string} order - The sorting order (name, file, image, total).
- * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
- */
-const sortUsage = function (usages, format, order, reverse) {
-  switch (order) {
-    case 'name':
-      usages.sort((a, b) => a['Client Name'].localeCompare(b['Client Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
-      break;
-    case 'file':
-      usages.sort((a, b) => a['File Backups'] - b['File Backups']);
-      break;
-    case 'image':
-      usages.sort((a, b) => a['Image Backups'] - b['Image Backups']);
-      break;
-    case 'total':
-      usages.sort((a, b) => a.Total - b.Total);
-      break;
-  }
-
-  if (reverse === true && format !== 'number') {
-    usages.reverse();
-  }
-};
-
-/**
- * Sorts an array of user objects. This function sorts the elements of an array in place.
- * NOTE: Sorting must be done after normalization.
- *
- * @param {Array} users - The array of user objects to sort.
- * @param {string} format - The format used for normalization.
- * @param {string} order - The sorting order (name, id).
- * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
- */
-const sortUsers = function (users, format, order, reverse) {
-  switch (order) {
-    case 'name':
-      users.sort((a, b) => a['User Name'].localeCompare(b['User Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
-      break;
-    case 'id':
-      users.sort((a, b) => a['User Id'] - b['User Id']);
-      break;
-  }
-
-  if (reverse === true && format !== 'number') {
-    users.reverse();
-  }
-};
-
-/**
- * Sorts an array of group objects. This function sorts the elements of an array in place.
- * NOTE: Sorting must be done after normalization.
- *
- * @param {Array} groups - The array of group objects to sort.
- * @param {string} format - The format used for normalization.
- * @param {string} order - The sorting order (name, id).
- * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
- */
-const sortGroups = function (groups, format, order, reverse) {
-  switch (order) {
-    case 'name':
-      groups.sort((a, b) => a['Group Name'].localeCompare(b['Group Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
-      break;
-    case 'id':
-      groups.sort((a, b) => a['Group Id'] - b['Group Id']);
-      break;
-  }
-
-  if (reverse === true && format !== 'number') {
-    groups.reverse();
+  if (reverse === true && outputFormat !== 'number') {
+    elements.reverse();
   }
 };
 
@@ -750,22 +639,48 @@ const processMatchingData = function (data, type, commandOptions) {
   if (commandOptions.format !== 'raw') {
     switch (type) {
       case 'clients':
-        sortClients(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortElements(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse, {
+          name: 'Client Name',
+          seen: 'Last Seen',
+          file: 'Last File BUP',
+          image: 'Last Image BUP',
+        });
         break;
       case 'currentActivities':
-        sortActivities(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortElements(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse, {
+          eta: 'ETA',
+          progress: 'Progress',
+          size: 'Size',
+          client: 'Client Name',
+        });
         break;
       case 'lastActivities':
-        sortActivities(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortElements(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse, {
+          size: 'Size',
+          client: 'Client Name',
+          time: 'Starting Time',
+          duration: 'Duration',
+        });
         break;
       case 'usage':
-        sortUsage(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortElements(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse, {
+          name: 'Client Name',
+          file: 'File Backups',
+          image: 'Image Backups',
+          total: 'Total',
+        });
         break;
       case 'users':
-        sortUsers(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortElements(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse, {
+          name: 'User Name',
+          id: 'User Id',
+        });
         break;
       case 'groups':
-        sortGroups(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        sortElements(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse, {
+          name: 'Group Name',
+          id: 'Group Id',
+        });
         break;
       default:
         break;
