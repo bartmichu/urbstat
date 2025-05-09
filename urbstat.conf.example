@@ -70,3 +70,9 @@ URBSTAT_USERS_SORT="name"
 
 ## Output format options for users: table, list, number, raw
 URBSTAT_USERS_FORMAT="table"
+
+## Sorting options for groups: name, id
+URBSTAT_GROUPS_SORT="name"
+
+## Output format options for groups: table, list, number, raw
+URBSTAT_GROUPS_FORMAT="table"

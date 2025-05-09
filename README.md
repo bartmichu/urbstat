@@ -165,6 +165,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 - 0.17.0
   - Implement the `users` command to retrieve a list of users, and add the `URBSTAT_USERS_SORT` and `URBSTAT_USERS_FORMAT` settings.
+  - Implement the `groups` command to retrieve a list of groups, and add the `URBSTAT_GROUPS_SORT` and `URBSTAT_GROUPS_FORMAT` settings.
 
 - 0.15.0
   - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
@@ -445,6 +446,16 @@ Get more help about a specific command and its applicable options:
   Default options are configured using: `URBSTAT_USERS_SORT`, `URBSTAT_USERS_FORMAT`.
 
   Options: `--format`, `--sort`, `--reverse`, `--max`, `--id`, `--name`.
+
+- **groups**
+
+  Retrieves groups. By default, UrBackup clients are added to a group with ID 0 and an empty name (empty string).
+
+  Required rights: `settings(all)`.
+
+  If the 'raw' format is specified, output cannot be sorted or filtered, and property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_GROUPS_SORT`, `URBSTAT_GROUPS_FORMAT`.
+
+  Options: `--format`, `--sort`, `--reverse`, `--max`.
 
 ## Security considerations
 

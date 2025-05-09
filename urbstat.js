@@ -23,6 +23,8 @@ const fallbackSettings = {
   URBSTAT_CLIENTS_SORT: { defaultValue: 'name', acceptedValues: ['name', 'seen', 'file', 'image'] },
   URBSTAT_CLIENTS_THRESHOLD_STALE: { defaultValue: 7200 },
   URBSTAT_CLIENTS_THRESHOLD_UNSEEN: { defaultValue: 10080 },
+  URBSTAT_GROUPS_SORT: { defaultValue: 'name', acceptedValues: ['name', 'id'] },
+  URBSTAT_GROUPS_FORMAT: { defaultValue: 'table', acceptedValues: ['table', 'list', 'number', 'raw'] },
   URBSTAT_LOCALE: { defaultValue: 'en' },
   URBSTAT_SERVER_PASSWORD: { defaultValue: '' },
   URBSTAT_SERVER_URL: { defaultValue: 'http://127.0.0.1:55414' },
@@ -132,6 +134,11 @@ let activeClientsResponse;
  * The users response from the server.
  */
 let usersResponse;
+
+/**
+ * The groups response from the server.
+ */
+let groupsResponse;
 
 /**
  * Make the required API calls to the UrBackup Server.
@@ -290,6 +297,8 @@ async function makeServerCalls(requiredCalls, commandOptions) {
       : null;
 
     usersResponse = requiredCalls.includes('users') ? await server.getUsers({}) : null;
+
+    groupsResponse = requiredCalls.includes('groups') ? await server.getGroups({}) : null;
   } catch (error) {
     // deno-lint-ignore no-console
     console.log(cliTheme.error(error.message));
@@ -441,6 +450,26 @@ const normalizeUser = function (user, format) {
 };
 
 /**
+ * Normalizes a group object for further use in the application.
+ *
+ * @param {Object} group - The group object to normalize.
+ * @param {string} format - The desired output format. If the format is 'raw', the original object is returned unchanged.
+ * @returns {Object} The normalized user object.
+ */
+const normalizeGroup = function (group, format) {
+  if (format === 'raw') {
+    return group;
+  } else {
+    return (function ({ id, name }) {
+      return ({
+        'Group Id': id,
+        'Group Name': name,
+      });
+    })(group);
+  }
+};
+
+/**
  * Sorts an array of client objects. This function sorts the elements of an array in place.
  * NOTE: Sorting must be done after normalization.
  *
@@ -557,6 +586,30 @@ const sortUsers = function (users, format, order, reverse) {
 
   if (reverse === true && format !== 'number') {
     users.reverse();
+  }
+};
+
+/**
+ * Sorts an array of group objects. This function sorts the elements of an array in place.
+ * NOTE: Sorting must be done after normalization.
+ *
+ * @param {Array} groups - The array of group objects to sort.
+ * @param {string} format - The format used for normalization.
+ * @param {string} order - The sorting order (name, id).
+ * @param {boolean} reverse - A flag indicating whether to sort in reverse order.
+ */
+const sortGroups = function (groups, format, order, reverse) {
+  switch (order) {
+    case 'name':
+      groups.sort((a, b) => a['Group Name'].localeCompare(b['Group Name'], getSettings('URBSTAT_LOCALE'), { sensitivity: 'base' }));
+      break;
+    case 'id':
+      groups.sort((a, b) => a['Group Id'] - b['Group Id']);
+      break;
+  }
+
+  if (reverse === true && format !== 'number') {
+    groups.reverse();
   }
 };
 
@@ -686,6 +739,9 @@ const processMatchingData = function (data, type, commandOptions) {
       case 'users':
         data[index] = normalizeUser(element, commandOptions?.format);
         break;
+      case 'groups':
+        data[index] = normalizeGroup(element, commandOptions?.format);
+        break;
       default:
         break;
     }
@@ -707,6 +763,9 @@ const processMatchingData = function (data, type, commandOptions) {
         break;
       case 'users':
         sortUsers(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
+        break;
+      case 'groups':
+        sortGroups(data, commandOptions?.format, commandOptions?.sort, commandOptions?.reverse);
         break;
       default:
         break;
@@ -741,6 +800,15 @@ const processMatchingData = function (data, type, commandOptions) {
           break;
       }
     }
+
+    if (type === 'groups') {
+      switch (commandOptions?.format) {
+        case 'list': // NOTE: falls through
+        case 'number':
+          data[index] = element['Group Name'];
+          break;
+      }
+    }
   });
 };
 
@@ -759,6 +827,8 @@ const cli = await new Command()
   .globalType('clientsFormatValues', new EnumType(fallbackSettings.URBSTAT_CLIENTS_FORMAT.acceptedValues))
   .globalType('clientsSortValues', new EnumType(fallbackSettings.URBSTAT_CLIENTS_SORT.acceptedValues))
   .globalType('currentActivitiesSortValues', new EnumType(fallbackSettings.URBSTAT_ACTIVITIES_SORT_CURRENT.acceptedValues))
+  .globalType('groupsFormatValues', new EnumType(fallbackSettings.URBSTAT_GROUPS_FORMAT.acceptedValues))
+  .globalType('groupsSortValues', new EnumType(fallbackSettings.URBSTAT_GROUPS_SORT.acceptedValues))
   .globalType('lastActivitiesSortValues', new EnumType(fallbackSettings.URBSTAT_ACTIVITIES_SORT_LAST.acceptedValues))
   .globalType('usageFormatValues', new EnumType(fallbackSettings.URBSTAT_USAGE_FORMAT.acceptedValues))
   .globalType('usageSortValues', new EnumType(fallbackSettings.URBSTAT_USAGE_SORT.acceptedValues))
@@ -1348,6 +1418,28 @@ cli.command(
     makeServerCalls(['users'], commandOptions).then(() => {
       processMatchingData(usersResponse, 'users', commandOptions);
       printOutput(usersResponse, commandOptions?.format);
+    });
+  });
+
+/**
+ * Retrieves groups. By default, UrBackup clients are added to a group with ID 0 and an empty name (empty string).
+ * Required rights: `settings(all)`.
+ * If the 'raw' format is specified, output cannot be sorted or filtered, and property names and values are returned as-is.
+ * Default options are configured using: `URBSTAT_GROUPS_SORT`, `URBSTAT_GROUPS_FORMAT`.
+ */
+cli.command(
+  'groups',
+  "Retrieves groups. By default, UrBackup clients are added to a group with ID 0 and an empty name (empty string).\nRequired rights: `settings(all)`.\nIf the 'raw' format is specified, output cannot be sorted or filtered, and property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_GROUPS_SORT`, `URBSTAT_GROUPS_FORMAT`.",
+)
+  .example('Get all groups (uses default options)', 'groups')
+  .option('--format <format:groupsFormatValues>', 'Change the output format.', { default: getSettings('URBSTAT_GROUPS_FORMAT') })
+  .option('--sort <field:groupsSortValues>', "Change the sorting order. Ignored with 'raw' output format.", { default: getSettings('URBSTAT_GROUPS_SORT') })
+  .option('--reverse', "Reverse the sorting order. Ignored with 'raw' output format.")
+  .option('--max <number:integer>', 'Show only <number> of groups, 0 means no limit.', { default: 0 })
+  .action((commandOptions) => {
+    makeServerCalls(['groups'], commandOptions).then(() => {
+      processMatchingData(groupsResponse, 'groups', commandOptions);
+      printOutput(groupsResponse, commandOptions?.format);
     });
   });
 
