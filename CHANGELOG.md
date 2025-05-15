@@ -18,6 +18,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 ## Notable Changes
 
 - 0.17.0
+  - Major rewrite, code optimisations.
+  - Allow sorting with `--sort` option for `raw` output format.
+  - Alow limiting with `--max` option for `raw` output format.
   - Removed `npm:ms` dependency.
   - Implement the `users` command to retrieve a list of users, and add the `URBSTAT_USERS_SORT` and `URBSTAT_USERS_FORMAT` settings.
   - Implement the `groups` command to retrieve a list of groups, and add the `URBSTAT_GROUPS_SORT` and `URBSTAT_GROUPS_FORMAT` settings.
@@ -37,7 +40,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 - 0.14.0
   - Matching stale clients now uses a single common time threshold instead of separate thresholds for files and images. This is specified using the `--threshold` option and the `URBSTAT_THRESHOLD_STALE_CLIENT` configuration option. The previous behavior can still be achieved by combining the `--threshold` option with `--skip-file` and `--skip-image`.
-  - Naming change – "void" clients are now referred to as "unseen" clients. As a result, the option name has changed to `--unseen-clients`, and the corresponding configuration option is now `URBSTAT_THRESHOLD_UNSEEN_CLIENT`.
+  - Naming change: "void" clients are now referred to as "unseen" clients. As a result, the option name has changed to `--unseen-clients`, and the corresponding configuration option is now `URBSTAT_THRESHOLD_UNSEEN_CLIENT`.
 
 - 0.11.0
   - Now that deno compile supports npm modules, I switched to using my `urbackup-server-api` Node.js library.

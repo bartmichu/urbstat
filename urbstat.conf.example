@@ -47,7 +47,7 @@ URBSTAT_CLIENTS_FORMAT="table"
 ## Sorting options for clients: name, seen, file, image
 URBSTAT_CLIENTS_SORT="name"
 
-## Output format options for activities: table, number, raw
+## Output format options for activities: table, list, number, raw
 URBSTAT_ACTIVITIES_FORMAT="table"
 
 ## Sorting options for current activities: client, eta, progress, size
@@ -56,11 +56,11 @@ URBSTAT_ACTIVITIES_SORT_CURRENT="client"
 ## Sorting options for last activities: client, time, duration, size
 URBSTAT_ACTIVITIES_SORT_LAST="time"
 
-## Output format options for usage: table, raw
+## Output format options for usage: table, list, number, raw
 URBSTAT_USAGE_FORMAT="table"
 
 ## Sorting options for usage: name, file, image, total
-URBSTAT_USAGE_SORT="total"
+URBSTAT_USAGE_SORT="name"
 
 ## Output format options for client details: table, raw
 URBSTAT_CLIENT_FORMAT="table"
