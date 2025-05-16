@@ -6,6 +6,54 @@ import { Table } from '@cliffy/table';
 import { UrbackupServer } from 'urbackup-server-api';
 
 /**
+ * Formats a Unix timestamp (in seconds) into a locale-specific date-time string.
+ *
+ * @param {number} secondsSinceEpoch - The number of seconds since the Unix epoch (January 1, 1970).
+ * @returns {string} A formatted date-time string.
+ */
+const formatDateTime = function (secondsSinceEpoch) {
+  // deno-lint-ignore no-undef
+  const instant = Temporal.Instant.fromEpochMilliseconds(secondsSinceEpoch * 1000);
+  return instant.toLocaleString(getSettings('URBSTAT_LOCALE'));
+};
+
+/**
+ * Formats a duration in seconds into a locale-specific, human-readable string.
+ *
+ * @param {number} seconds - The duration in seconds.
+ * @param {string} [style='digital'] - The formatting style to use.
+ * @returns {string} The formatted duration string.
+ */
+const formatDuration = function (seconds, style = 'digital') {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  const formatter = new Intl.DurationFormat(getSettings('URBSTAT_LOCALE'), { style });
+
+  return formatter.format({ hours, minutes, seconds: remainingSeconds });
+};
+
+/**
+ * Formats a byte count into a human-readable string.
+ *
+ * @param {number} bytes - The number of bytes.
+ * @param {number} [decimals=2] - The number of decimal places to round to.
+ * @returns {string} The formatted string.
+ */
+const formatBytes = function (bytes, decimals = 2) {
+  if (bytes === 0) {
+    return '0 Bytes';
+  }
+
+  const kilo = 1024;
+  const units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const unitIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(kilo));
+
+  return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + units[unitIndex];
+};
+
+/**
  * Common text style definitions for CLI messages.
  */
 const cliTheme = { error: colors.bold.red, warning: colors.yellow, information: colors.blue };
@@ -15,72 +63,367 @@ const cliTheme = { error: colors.bold.red, warning: colors.yellow, information: 
  */
 const MAPS = {
   activityCurrent: {
-    id: { property: 'id', header: 'Activity ID', inTable: true },
-    logId: { property: 'logid', header: 'Log ID', inTable: false },
-    actionCode: { property: 'action', header: 'Action', inTable: true },
-    clientId: { property: 'clientid', header: 'Client ID', inTable: true },
-    clientName: { property: 'name', header: 'Client Name', inTable: true },
-    eta: { property: 'eta_ms', header: 'ETA', inTable: true },
-    progress: { property: 'pcdone', header: 'Progress', inTable: true },
-    bytesDone: { property: 'done_bytes', header: 'Bytes Done', inTable: true },
-    size: { property: 'total_bytes', header: 'Size', inTable: true },
-    isPaused: { property: 'paused', header: 'Paused', inTable: true },
-    queue: { property: 'queue', header: 'Queue', inTable: false },
-    speedCurrent: { property: 'speed_bpms', header: 'Speed', inTable: false },
-    speedHistory: { property: 'past_speed_bpms', header: 'Speed History', inTable: false },
-    details: { property: 'detail_pc', header: 'Info', inTable: false },
-    detailPc: { property: 'details', header: 'Details', inTable: false },
+    id: {
+      property: 'id',
+      header: 'Activity ID',
+      inTable: true,
+    },
+    logId: {
+      property: 'logid',
+      header: 'Log ID',
+    },
+    actionCode: {
+      property: 'action',
+      header: 'Action',
+      inTable: true,
+      inList: true,
+    },
+    clientId: {
+      property: 'clientid',
+      header: 'Client ID',
+      inTable: true,
+    },
+    clientName: {
+      property: 'name',
+      header: 'Client Name',
+      inTable: true,
+    },
+    eta: {
+      property: 'eta_ms',
+      header: 'ETA',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return activityItem[this.property] >= 0 ? formatDuration(Math.round(activityItem[this.property] / 1000)) : 'n/a';
+      },
+    },
+    progress: {
+      property: 'pcdone',
+      header: 'Progress',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return activityItem[this.property] >= 0 ? `${activityItem[this.property]}%` : 'n/a';
+      },
+    },
+    bytesDone: {
+      property: 'done_bytes',
+      header: 'Bytes Done',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return formatBytes(activityItem[this.property], 2);
+      },
+    },
+    size: {
+      property: 'total_bytes',
+      header: 'Size',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return activityItem[this.property] >= 0 ? formatBytes(activityItem[this.property], 2) : 'n/a';
+      },
+    },
+    isPaused: {
+      property: 'paused',
+      header: 'Paused',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return activityItem[this.property] === true ? 'yes' : 'no';
+      },
+    },
+    queue: {
+      property: 'queue',
+      header: 'Queue',
+    },
+    speedCurrent: {
+      property: 'speed_bpms',
+      header: 'Speed',
+    },
+    speedHistory: {
+      property: 'past_speed_bpms',
+      header: 'Speed History',
+    },
+    details: {
+      property: 'detail_pc',
+      header: 'Info',
+    },
+    detailPc: {
+      property: 'details',
+      header: 'Details',
+    },
   },
   activityLast: {
-    id: { property: 'id', header: 'Activity ID', inTable: true },
-    clientId: { property: 'clientid', header: 'Client ID', inTable: true },
-    clientName: { property: 'name', header: 'Client Name', inTable: true },
-    startingTime: { property: 'backuptime', header: 'Starting Time', inTable: true },
-    duration: { property: 'duration', header: 'Duration', inTable: true },
-    delete: { property: 'del', header: 'Delete', inTable: true },
-    size: { property: 'size_bytes', header: 'Size', inTable: true },
-    incremental: { property: 'incremental', header: 'Incremental', inTable: false },
-    image: { property: 'image', header: 'Image', inTable: false },
-    restore: { property: 'restore', header: 'Restore', inTable: false },
-    resumed: { property: 'redumed', header: 'Resumed', inTable: false },
-    details: { property: 'details', header: 'Details', inTable: false },
+    id: {
+      property: 'id',
+      header: 'Activity ID',
+      inTable: true,
+    },
+    clientId: {
+      property: 'clientid',
+      header: 'Client ID',
+      inTable: true,
+    },
+    clientName: {
+      property: 'name',
+      header: 'Client Name',
+      inTable: true,
+      inList: true,
+    },
+    startingTime: {
+      property: 'backuptime',
+      header: 'Starting Time',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return formatDateTime(activityItem[this.property]);
+      },
+    },
+    duration: {
+      property: 'duration',
+      header: 'Duration',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return formatDuration(activityItem[this.property]);
+      },
+    },
+    delete: {
+      property: 'del',
+      header: 'Delete',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return activityItem[this.property] === true ? 'yes' : 'no';
+      },
+    },
+    size: {
+      property: 'size_bytes',
+      header: 'Size',
+      inTable: true,
+      normalizer: function (activityItem) {
+        return formatBytes(activityItem[this.property], 2);
+      },
+    },
+    incremental: {
+      property: 'incremental',
+      header: 'Incremental',
+    },
+    image: {
+      property: 'image',
+      header: 'Image',
+    },
+    restore: {
+      property: 'restore',
+      header: 'Restore',
+    },
+    resumed: {
+      property: 'redumed',
+      header: 'Resumed',
+    },
+    details: {
+      property: 'details',
+      header: 'Details',
+    },
   },
   client: {
-    id: { property: 'id', header: 'Client ID', inTable: true },
-    name: { property: 'name', header: 'Client Name', inTable: true },
-    uid: { property: 'uid', header: 'Client UID', inTable: false },
-    groupName: { property: 'groupname', header: 'Group Name', inTable: false },
-    toRemove: { property: 'delete_pending', header: 'Remove Pending', inTable: false },
-    isOnline: { property: 'online', header: 'Online', inTable: true },
-    lastSeen: { property: 'lastseen', header: 'Last Seen', inTable: true },
-    statusFile: { property: 'file_ok', header: 'File BUP Status', inTable: true },
-    lastFile: { property: 'lastbackup', header: 'Last File BUP', inTable: true },
-    issuesFile: { property: 'last_filebackup_issues', header: 'File BUP Issues', inTable: false },
-    isFileDisabled: { property: 'file_disabled', header: 'File Disabled', inTable: false },
-    statusImage: { property: 'image_ok', header: 'Image BUP Status', inTable: true },
-    lastImage: { property: 'lastbackup_image', header: 'Last Image BUP', inTable: true },
-    isImageDisabled: { property: 'image_disabled', header: 'Image Disabled', inTable: false },
-    activity: { property: 'status', header: 'Activity', inTable: true },
-    processes: { property: 'processes', header: 'Processes', inTable: false },
-    ip: { property: 'ip', header: 'IP', inTable: false },
-    version: { property: 'client_version_string', header: 'Client Version', inTable: false },
-    osType: { property: 'os_simple', header: 'OS Type', inTable: false },
-    osVersion: { property: 'os_version_string', header: 'OS Version', inTable: false },
+    id: {
+      property: 'id',
+      header: 'Client ID',
+      inTable: true,
+    },
+    name: {
+      property: 'name',
+      header: 'Client Name',
+      inTable: true,
+      inList: true,
+    },
+    uid: {
+      property: 'uid',
+      header: 'Client UID',
+    },
+    groupName: {
+      property: 'groupname',
+      header: 'Group Name',
+    },
+    toRemove: {
+      property: 'delete_pending',
+      header: 'Remove Pending',
+      normalizer: function (clientItem) {
+        return clientItem[this.property].length === 0 ? 'no' : 'yes';
+      },
+    },
+    isOnline: {
+      property: 'online',
+      header: 'Online',
+      inTable: true,
+      normalizer: function (clientItem) {
+        return clientItem[this.property] === true ? 'yes' : 'no';
+      },
+    },
+    lastSeen: {
+      property: 'lastseen',
+      header: 'Last Seen',
+      inTable: true,
+      normalizer: function (clientItem) {
+        return clientItem[this.property] === 0 ? 'never' : formatDateTime(clientItem[this.property]);
+      },
+    },
+    statusFile: {
+      property: 'file_ok',
+      header: 'File BUP Status',
+      inTable: true,
+      normalizer: function (clientItem) {
+        if (clientItem[MAPS.client.isFileDisabled.property] === true) {
+          return 'disabled';
+        } else if (clientItem[this.property] === true) {
+          return clientItem[MAPS.client.issuesFile.property] === 0 ? 'ok' : 'issues';
+        } else {
+          return 'failed';
+        }
+      },
+    },
+    lastFile: {
+      property: 'lastbackup',
+      header: 'Last File BUP',
+      inTable: true,
+      normalizer: function (clientItem) {
+        if (clientItem[this.property] === 0) {
+          return clientItem[MAPS.client.isFileDisabled.property] === true ? 'disabled' : 'never';
+        } else {
+          return formatDateTime(clientItem[this.property]);
+        }
+      },
+    },
+    issuesFile: {
+      property: 'last_filebackup_issues',
+      header: 'File BUP Issues',
+    },
+    isFileDisabled: {
+      property: 'file_disabled',
+      header: 'File Disabled',
+      normalizer: function (clientItem) {
+        return clientItem[this.property] === true ? 'yes' : 'no';
+      },
+    },
+    statusImage: {
+      property: 'image_ok',
+      header: 'Image BUP Status',
+      inTable: true,
+      normalizer: function (clientItem) {
+        if (clientItem[MAPS.client.isImageDisabled.property] === true) {
+          return 'disabled';
+        } else {
+          return clientItem[this.property] === true ? 'ok' : 'failed';
+        }
+      },
+    },
+    lastImage: {
+      property: 'lastbackup_image',
+      header: 'Last Image BUP',
+      inTable: true,
+      normalizer: function (clientItem) {
+        if (clientItem[this.property] === 0) {
+          return clientItem[MAPS.client.isImageDisabled.property] === true ? 'disabled' : 'never';
+        } else {
+          return formatDateTime(clientItem[this.property]);
+        }
+      },
+    },
+    isImageDisabled: {
+      property: 'image_disabled',
+      header: 'Image Disabled',
+      normalizer: function (clientItem) {
+        return clientItem[this.property] === true ? 'yes' : 'no';
+      },
+    },
+    activity: {
+      property: 'status',
+      header: 'Activity',
+      inTable: true,
+      normalizer: function (clientItem) {
+        return clientItem[this.property] === 0 ? 'none' : clientItem[this.property];
+      },
+    },
+    processes: {
+      property: 'processes',
+      header: 'Processes',
+    },
+    ip: {
+      property: 'ip',
+      header: 'IP',
+    },
+    version: {
+      property: 'client_version_string',
+      header: 'Client Version',
+    },
+    osType: {
+      property: 'os_simple',
+      header: 'OS Type',
+    },
+    osVersion: {
+      property: 'os_version_string',
+      header: 'OS Version',
+    },
   },
   usage: {
-    clientName: { property: 'name', header: 'Client Name', inTable: true },
-    file: { property: 'files', header: 'File Backups', inTable: true },
-    image: { property: 'images', header: 'Image Backups', inTable: true },
-    used: { property: 'used', header: 'Total', inTable: true },
+    clientName: {
+      property: 'name',
+      header: 'Client Name',
+      inTable: true,
+    },
+    file: {
+      property: 'files',
+      header: 'File Backups',
+      inTable: true,
+      normalizer: function (usageItem) {
+        return formatBytes(usageItem[this.property], 2);
+      },
+    },
+    image: {
+      property: 'images',
+      header: 'Image Backups',
+      inTable: true,
+      normalizer: function (usageItem) {
+        return formatBytes(usageItem[this.property], 2);
+      },
+    },
+    used: {
+      property: 'used',
+      header: 'Total',
+      inTable: true,
+      inList: true,
+      normalizer: function (usageItem) {
+        return formatBytes(usageItem[this.property], 2);
+      },
+    },
   },
   group: {
-    id: { property: 'id', header: 'Group ID', inTable: true },
-    name: { property: 'name', header: 'Group Name', inTable: true },
+    id: {
+      property: 'id',
+      header: 'Group ID',
+      inTable: true,
+    },
+    name: {
+      property: 'name',
+      header: 'Group Name',
+      inTable: true,
+      inList: true,
+    },
   },
   user: {
-    id: { property: 'id', header: 'User ID', inTable: true },
-    name: { property: 'name', header: 'User Name', inTable: true },
-    rights: { property: 'rights', header: 'User Rights', inTable: true },
+    id: {
+      property: 'id',
+      header: 'User ID',
+      inTable: true,
+    },
+    name: {
+      property: 'name',
+      header: 'User Name',
+      inTable: true,
+      inList: true,
+    },
+    rights: {
+      property: 'rights',
+      header: 'User Rights',
+      inTable: true,
+      normalizer: function (userItem) {
+        return JSON.stringify(userItem[this.property]);
+      },
+    },
   },
 };
 
@@ -455,32 +798,20 @@ const sortElements = function (data, dataType, sortingOrder, isReversed) {
  * @param {string} outputFormat - The output format.
  */
 const pluckProperties = function (data, dataType, outputFormat) {
-  const pluckMaps = {
-    client: {
-      list: MAPS.client.name.property,
-    },
-    activityCurrent: {
-      list: MAPS.activityCurrent.actionCode.property,
-    },
-    activityLast: {
-      list: MAPS.activityLast.clientName.property,
-    },
-    user: {
-      list: MAPS.user.name.property,
-    },
-    group: {
-      list: MAPS.group.name.property,
-    },
-    usage: {
-      list: MAPS.usage.used.property,
-    },
-  };
+  const descriptorIndex = Object.values(MAPS[dataType]).findIndex((descriptor) => {
+    switch (outputFormat) {
+      case 'list':
+        return descriptor?.inList === true;
+        // break;
+      default:
+        break;
+    }
+  });
+  const targetProperty = descriptorIndex >= 0 ? Object.values(MAPS[dataType])[descriptorIndex].property : undefined;
 
-  if ((typeof pluckMaps[dataType] !== 'undefined') && Object.hasOwn(pluckMaps[dataType], outputFormat)) {
-    data.forEach((element, index) => {
-      data[index] = element[pluckMaps[dataType][outputFormat]];
-    });
-  }
+  data.forEach((element, index) => {
+    data[index] = element[targetProperty];
+  });
 };
 
 /**
@@ -498,171 +829,6 @@ const transformData = function (data, dataType, commandOptions) {
     if (commandOptions?.format === 'list') {
       pluckProperties(data, dataType, commandOptions?.format);
     }
-  }
-};
-
-/**
- * Normalizes specific values of object based on predefined mappings.
- *
- * @param {Object} object - The objects to normalize.
- * @param {string} dataType - The type of data being processed.
- * @param {string} propertyName - The name of the property to normalize.
- */
-const normalizeValues = function (object, dataType, propertyName) {
-  /**
-   * Formats a Unix timestamp (in seconds) into a locale-specific date-time string.
-   *
-   * @param {number} secondsSinceEpoch - The number of seconds since the Unix epoch (January 1, 1970).
-   * @returns {string} A formatted date-time string.
-   */
-  const formatDateTime = function (secondsSinceEpoch) {
-    // deno-lint-ignore no-undef
-    const instant = Temporal.Instant.fromEpochMilliseconds(secondsSinceEpoch * 1000);
-    return instant.toLocaleString(getSettings('URBSTAT_LOCALE'));
-  };
-
-  /**
-   * Formats a duration in seconds into a locale-specific, human-readable string.
-   *
-   * @param {number} seconds - The duration in seconds.
-   * @param {string} [style='digital'] - The formatting style to use.
-   * @returns {string} The formatted duration string.
-   */
-  const formatDuration = function (seconds, style = 'digital') {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-
-    const formatter = new Intl.DurationFormat(getSettings('URBSTAT_LOCALE'), { style });
-
-    return formatter.format({ hours, minutes, seconds: remainingSeconds });
-  };
-
-  /**
-   * Formats a byte count into a human-readable string.
-   *
-   * @param {number} bytes - The number of bytes.
-   * @param {number} [decimals=2] - The number of decimal places to round to.
-   * @returns {string} The formatted string.
-   */
-  const formatBytes = function (bytes, decimals = 2) {
-    if (bytes === 0) {
-      return '0 Bytes';
-    }
-
-    const kilo = 1024;
-    const units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    const unitIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(kilo));
-
-    return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + units[unitIndex];
-  };
-
-  const normalizeMaps = {
-    client: {
-      [MAPS.client.statusFile.property]: (client) => {
-        if (client[MAPS.client.isFileDisabled.property] === true) {
-          return 'disabled';
-        } else if (client[propertyName] === true) {
-          return client[MAPS.client.issuesFile.property] === 0 ? 'ok' : 'issues';
-        } else {
-          return 'failed';
-        }
-      },
-      [MAPS.client.statusImage.property]: (client) => {
-        if (client[MAPS.client.isImageDisabled.property] === true) {
-          return 'disabled';
-        } else {
-          return client[propertyName] === true ? 'ok' : 'failed';
-        }
-      },
-      [MAPS.client.isOnline.property]: (client) => {
-        return client[propertyName] === true ? 'yes' : 'no';
-      },
-      [MAPS.client.toRemove.property]: (client) => {
-        return client[propertyName].length === 0 ? 'no' : 'yes';
-      },
-      [MAPS.client.isFileDisabled.property]: (client) => {
-        return client[propertyName] === true ? 'yes' : 'no';
-      },
-      [MAPS.client.isImageDisabled.property]: (client) => {
-        return client[propertyName] === true ? 'yes' : 'no';
-      },
-      [MAPS.client.lastSeen.property]: (client) => {
-        return client[propertyName] === 0 ? 'never' : formatDateTime(client[propertyName]);
-      },
-      [MAPS.client.lastFile.property]: (client) => {
-        if (client[propertyName] === 0) {
-          return client[MAPS.client.isFileDisabled.property] === true ? 'disabled' : 'never';
-        } else {
-          return formatDateTime(client[propertyName]);
-        }
-      },
-      [MAPS.client.lastImage.property]: (client) => {
-        if (client[propertyName] === 0) {
-          return client[MAPS.client.isImageDisabled.property] === true ? 'disabled' : 'never';
-        } else {
-          return formatDateTime(client[propertyName]);
-        }
-      },
-      [MAPS.client.activity.property]: (client) => {
-        return client[propertyName] === 0 ? 'none' : client[propertyName];
-      },
-    },
-    activityCurrent: {
-      [MAPS.activityCurrent.eta.property]: (activity) => {
-        return activity[propertyName] >= 0 ? formatDuration(Math.round(activity[propertyName] / 1000)) : 'n/a';
-      },
-      [MAPS.activityCurrent.isPaused.property]: (activity) => {
-        return activity[propertyName] === true ? 'yes' : 'no';
-      },
-      [MAPS.activityCurrent.bytesDone.property]: (activity) => {
-        return formatBytes(activity[propertyName], 2);
-      },
-      [MAPS.activityCurrent.size.property]: (activity) => {
-        return activity[propertyName] >= 0 ? formatBytes(activity[propertyName], 2) : 'n/a';
-      },
-      [MAPS.activityCurrent.progress.property]: (activity) => {
-        return activity[propertyName] >= 0 ? `${activity[propertyName]}%` : 'n/a';
-      },
-    },
-    activityLast: {
-      [MAPS.activityLast.startingTime.property]: (activity) => {
-        return formatDateTime(activity[propertyName]);
-      },
-      [MAPS.activityLast.size.property]: (activity) => {
-        return formatBytes(activity[propertyName], 2);
-      },
-      [MAPS.activityLast.delete.property]: (activity) => {
-        return activity[propertyName] === true ? 'yes' : 'no';
-      },
-      [MAPS.activityLast.duration.property]: (activity) => {
-        return formatDuration(activity[propertyName]);
-      },
-    },
-    user: {
-      [MAPS.user.rights.property]: (user) => {
-        return JSON.stringify(user[propertyName]);
-      },
-    },
-    usage: {
-      [MAPS.usage.file.property]: (usage) => {
-        return formatBytes(usage[propertyName], 2);
-      },
-      [MAPS.usage.image.property]: (usage) => {
-        return formatBytes(usage[propertyName], 2);
-      },
-      [MAPS.usage.used.property]: (usage) => {
-        return formatBytes(usage[propertyName], 2);
-      },
-    },
-  };
-
-  if (typeof normalizeMaps[dataType] !== 'undefined' && typeof normalizeMaps[dataType][propertyName] !== 'undefined') {
-    if (Object.hasOwn(object, propertyName)) {
-      return normalizeMaps[dataType][propertyName](object);
-    }
-  } else {
-    return object[propertyName];
   }
 };
 
@@ -695,7 +861,7 @@ const printData = function (data, dataType, outputFormat) {
           for (const [_key, value] of Object.entries(MAPS[dataType])) {
             if (value?.inTable === true) {
               header.add(value?.header ?? '');
-              normalizedElement[value.property] = normalizeValues(element, dataType, value.property) ?? '';
+              normalizedElement[value.property] = typeof value?.normalizer === 'function' ? value.normalizer(element) : element[value.property];
             }
           }
 
