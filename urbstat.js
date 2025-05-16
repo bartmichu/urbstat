@@ -1051,14 +1051,14 @@ cli.command(
   });
 
 /**
- * Retrieves clients with a 'failed' backup status or those without a recent backup (as per UrBackup Server settings). Excludes clients marked for removal.
+ * Retrieves clients with a 'failed' backup status or those without a recent backup (as per UrBackup Server settings). File backups finished with issues are treated as OK by default. Excludes clients marked for removal.
  * Required rights: `status(all)`.
  * If the 'raw' format is specified, property names and values are returned as-is.
  * Default options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
  */
 cli.command(
   'failed-clients',
-  "Retrieves clients with a 'failed' backup status or those without a recent backup (as per UrBackup Server settings). Excludes clients marked for removal.\nRequired rights: `status(all)`.\nIf the 'raw' format is specified, property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.",
+  "Retrieves clients with a 'failed' backup status or those without a recent backup (as per UrBackup Server settings). File backups finished with issues are treated as OK by default. Excludes clients marked for removal.\nRequired rights: `status(all)`.\nIf the 'raw' format is specified, property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.",
 )
   .example('Get failed clients (uses default options)', 'failed-clients')
   .example('Get the total count of failed clients', 'failed-clients --format "number"')
@@ -1072,6 +1072,7 @@ cli.command(
   .option('--skip-file', 'Skip file backups when matching clients.', { conflicts: ['skip-image'] })
   .option('--skip-image', 'Skip image backups when matching clients.')
   .option('--skip-blank', 'Skip blank clients.')
+  .option('--strict', 'Do not treat backups finished with issues as being OK.')
   .option('--group-name [name:string]', 'Limit clients to specified group only. Use ="" for empty string.', { default: undefined })
   .action((commandOptions) => {
     makeServerCalls(['failed-clients'], commandOptions).then(() => {
