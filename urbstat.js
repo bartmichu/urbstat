@@ -6,52 +6,60 @@ import { Table } from '@cliffy/table';
 import { UrbackupServer } from 'urbackup-server-api';
 
 /**
- * Formats a Unix timestamp (in seconds) into a locale-specific date-time string.
+ * A utility class for formatting data into locale-specific, human-readable strings.
+ * All formatting is performed using the locale defined by `getSettings('URBSTAT_LOCALE')`.
  *
- * @param {number} secondsSinceEpoch - The number of seconds since the Unix epoch (January 1, 1970).
- * @returns {string} A formatted date-time string.
+ * @class
  */
-const formatDateTime = function (secondsSinceEpoch) {
-  // deno-lint-ignore no-undef
-  const instant = Temporal.Instant.fromEpochMilliseconds(secondsSinceEpoch * 1000);
-  return instant.toLocaleString(getSettings('URBSTAT_LOCALE'));
-};
-
-/**
- * Formats a duration in seconds into a locale-specific, human-readable string.
- *
- * @param {number} seconds - The duration in seconds.
- * @param {string} [style='digital'] - The formatting style to use.
- * @returns {string} The formatted duration string.
- */
-const formatDuration = function (seconds, style = 'digital') {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  const formatter = new Intl.DurationFormat(getSettings('URBSTAT_LOCALE'), { style });
-
-  return formatter.format({ hours, minutes, seconds: remainingSeconds });
-};
-
-/**
- * Formats a byte count into a human-readable string.
- *
- * @param {number} bytes - The number of bytes.
- * @param {number} [decimals=2] - The number of decimal places to round to.
- * @returns {string} The formatted string.
- */
-const formatBytes = function (bytes, decimals = 2) {
-  if (bytes === 0) {
-    return '0 Bytes';
+class Formatter {
+  /**
+   * Formats a Unix timestamp (in seconds) into a locale-specific date-time string.
+   *
+   * @param {number} secondsSinceEpoch - The number of seconds since the Unix epoch (January 1, 1970).
+   * @returns {string} A formatted date-time string.
+   */
+  static formatDateTime(secondsSinceEpoch) {
+    // deno-lint-ignore no-undef
+    const instant = Temporal.Instant.fromEpochMilliseconds(secondsSinceEpoch * 1000);
+    return instant.toLocaleString(getSettings('URBSTAT_LOCALE'));
   }
 
-  const kilo = 1024;
-  const units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  const unitIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(kilo));
+  /**
+   * Formats a duration in seconds into a locale-specific, human-readable string.
+   *
+   * @param {number} seconds - The duration in seconds.
+   * @param {string} [style='digital'] - The formatting style to use.
+   * @returns {string} The formatted duration string.
+   */
+  static formatDuration(seconds, style = 'digital') {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
 
-  return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + units[unitIndex];
-};
+    const formatter = new Intl.DurationFormat(getSettings('URBSTAT_LOCALE'), { style });
+
+    return formatter.format({ hours, minutes, seconds: remainingSeconds });
+  }
+
+  /**
+   * Formats a byte count into a human-readable string.
+   *
+   * @param {number} bytes - The number of bytes.
+   * @param {number} [decimals=2] - The number of decimal places to round to.
+   * @returns {string} The formatted string.
+   */
+  static formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) {
+      return '0 Bytes';
+    }
+
+    const kilo = 1024;
+    const units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const unitIndex = Math.floor(Math.log(Math.abs(bytes)) / Math.log(kilo));
+
+    return parseFloat((bytes / Math.pow(kilo, unitIndex)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + units[unitIndex];
+  }
+}
 
 /**
  * Common text style definitions for CLI messages.
@@ -93,7 +101,7 @@ const MAPS = {
       header: 'ETA',
       inTable: true,
       normalizer: function (activityItem) {
-        return activityItem[this.property] >= 0 ? formatDuration(Math.round(activityItem[this.property] / 1000)) : 'n/a';
+        return activityItem[this.property] >= 0 ? Formatter.formatDuration(Math.round(activityItem[this.property] / 1000)) : 'n/a';
       },
     },
     progress: {
@@ -109,7 +117,7 @@ const MAPS = {
       header: 'Bytes Done',
       inTable: true,
       normalizer: function (activityItem) {
-        return formatBytes(activityItem[this.property], 2);
+        return Formatter.formatBytes(activityItem[this.property], 2);
       },
     },
     size: {
@@ -117,7 +125,7 @@ const MAPS = {
       header: 'Size',
       inTable: true,
       normalizer: function (activityItem) {
-        return activityItem[this.property] >= 0 ? formatBytes(activityItem[this.property], 2) : 'n/a';
+        return activityItem[this.property] >= 0 ? Formatter.formatBytes(activityItem[this.property], 2) : 'n/a';
       },
     },
     isPaused: {
@@ -171,7 +179,7 @@ const MAPS = {
       header: 'Starting Time',
       inTable: true,
       normalizer: function (activityItem) {
-        return formatDateTime(activityItem[this.property]);
+        return Formatter.formatDateTime(activityItem[this.property]);
       },
     },
     duration: {
@@ -179,7 +187,7 @@ const MAPS = {
       header: 'Duration',
       inTable: true,
       normalizer: function (activityItem) {
-        return formatDuration(activityItem[this.property]);
+        return Formatter.formatDuration(activityItem[this.property]);
       },
     },
     delete: {
@@ -195,7 +203,7 @@ const MAPS = {
       header: 'Size',
       inTable: true,
       normalizer: function (activityItem) {
-        return formatBytes(activityItem[this.property], 2);
+        return Formatter.formatBytes(activityItem[this.property], 2);
       },
     },
     incremental: {
@@ -259,7 +267,7 @@ const MAPS = {
       header: 'Last Seen',
       inTable: true,
       normalizer: function (clientItem) {
-        return clientItem[this.property] === 0 ? 'never' : formatDateTime(clientItem[this.property]);
+        return clientItem[this.property] === 0 ? 'never' : Formatter.formatDateTime(clientItem[this.property]);
       },
     },
     statusFile: {
@@ -284,7 +292,7 @@ const MAPS = {
         if (clientItem[this.property] === 0) {
           return clientItem[MAPS.client.isFileDisabled.property] === true ? 'disabled' : 'never';
         } else {
-          return formatDateTime(clientItem[this.property]);
+          return Formatter.formatDateTime(clientItem[this.property]);
         }
       },
     },
@@ -319,7 +327,7 @@ const MAPS = {
         if (clientItem[this.property] === 0) {
           return clientItem[MAPS.client.isImageDisabled.property] === true ? 'disabled' : 'never';
         } else {
-          return formatDateTime(clientItem[this.property]);
+          return Formatter.formatDateTime(clientItem[this.property]);
         }
       },
     },
@@ -370,7 +378,7 @@ const MAPS = {
       header: 'File Backups',
       inTable: true,
       normalizer: function (usageItem) {
-        return formatBytes(usageItem[this.property], 2);
+        return Formatter.formatBytes(usageItem[this.property], 2);
       },
     },
     image: {
@@ -378,7 +386,7 @@ const MAPS = {
       header: 'Image Backups',
       inTable: true,
       normalizer: function (usageItem) {
-        return formatBytes(usageItem[this.property], 2);
+        return Formatter.formatBytes(usageItem[this.property], 2);
       },
     },
     used: {
@@ -387,7 +395,7 @@ const MAPS = {
       inTable: true,
       inList: true,
       normalizer: function (usageItem) {
-        return formatBytes(usageItem[this.property], 2);
+        return Formatter.formatBytes(usageItem[this.property], 2);
       },
     },
   },
