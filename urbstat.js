@@ -36,7 +36,7 @@ class Formatter {
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
 
-    const formatter = new Intl.DurationFormat(getSettings('URBSTAT_LOCALE'), { style });
+    const formatter = new Intl.DurationFormat(this.locale, { style });
 
     return formatter.format({ hours, minutes, seconds: remainingSeconds });
   }
@@ -74,7 +74,11 @@ const MAPS = {
     id: {
       property: 'id',
       header: 'Activity ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 8,
+      },
     },
     logId: {
       property: 'logid',
@@ -83,23 +87,39 @@ const MAPS = {
     actionCode: {
       property: 'action',
       header: 'Action',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
       inList: true,
     },
     clientId: {
       property: 'clientid',
       header: 'Client ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
     },
     clientName: {
       property: 'name',
       header: 'Client Name',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 30,
+      },
     },
     eta: {
       property: 'eta_ms',
       header: 'ETA',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 8,
+      },
       normalizer: function (activityItem) {
         return activityItem[this.property] >= 0 ? Formatter.formatDuration(Math.round(activityItem[this.property] / 1000)) : 'n/a';
       },
@@ -107,7 +127,11 @@ const MAPS = {
     progress: {
       property: 'pcdone',
       header: 'Progress',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 8,
+      },
       normalizer: function (activityItem) {
         return activityItem[this.property] >= 0 ? `${activityItem[this.property]}%` : 'n/a';
       },
@@ -115,7 +139,11 @@ const MAPS = {
     bytesDone: {
       property: 'done_bytes',
       header: 'Bytes Done',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 10,
+      },
       normalizer: function (activityItem) {
         return Formatter.formatBytes(activityItem[this.property], 2);
       },
@@ -123,7 +151,11 @@ const MAPS = {
     size: {
       property: 'total_bytes',
       header: 'Size',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 10,
+      },
       normalizer: function (activityItem) {
         return activityItem[this.property] >= 0 ? Formatter.formatBytes(activityItem[this.property], 2) : 'n/a';
       },
@@ -131,7 +163,11 @@ const MAPS = {
     isPaused: {
       property: 'paused',
       header: 'Paused',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
       normalizer: function (activityItem) {
         return activityItem[this.property] === true ? 'yes' : 'no';
       },
@@ -161,23 +197,39 @@ const MAPS = {
     id: {
       property: 'id',
       header: 'Activity ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 8,
+      },
     },
     clientId: {
       property: 'clientid',
       header: 'Client ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
     },
     clientName: {
       property: 'name',
       header: 'Client Name',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 30,
+      },
       inList: true,
     },
     startingTime: {
       property: 'backuptime',
       header: 'Starting Time',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 11,
+      },
       normalizer: function (activityItem) {
         return Formatter.formatDateTime(activityItem[this.property]);
       },
@@ -185,7 +237,11 @@ const MAPS = {
     duration: {
       property: 'duration',
       header: 'Duration',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 8,
+      },
       normalizer: function (activityItem) {
         return Formatter.formatDuration(activityItem[this.property]);
       },
@@ -193,7 +249,11 @@ const MAPS = {
     delete: {
       property: 'del',
       header: 'Delete',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
       normalizer: function (activityItem) {
         return activityItem[this.property] === true ? 'yes' : 'no';
       },
@@ -201,7 +261,11 @@ const MAPS = {
     size: {
       property: 'size_bytes',
       header: 'Size',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 10,
+      },
       normalizer: function (activityItem) {
         return Formatter.formatBytes(activityItem[this.property], 2);
       },
@@ -231,12 +295,20 @@ const MAPS = {
     id: {
       property: 'id',
       header: 'Client ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
     },
     name: {
       property: 'name',
       header: 'Client Name',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 30,
+      },
       inList: true,
     },
     uid: {
@@ -257,7 +329,11 @@ const MAPS = {
     isOnline: {
       property: 'online',
       header: 'Online',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 6,
+      },
       normalizer: function (clientItem) {
         return clientItem[this.property] === true ? 'yes' : 'no';
       },
@@ -265,7 +341,11 @@ const MAPS = {
     lastSeen: {
       property: 'lastseen',
       header: 'Last Seen',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 11,
+      },
       normalizer: function (clientItem) {
         return clientItem[this.property] === 0 ? 'never' : Formatter.formatDateTime(clientItem[this.property]);
       },
@@ -273,7 +353,11 @@ const MAPS = {
     statusFile: {
       property: 'file_ok',
       header: 'File BUP Status',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 8,
+      },
       normalizer: function (clientItem) {
         if (clientItem[MAPS.client.isFileDisabled.property] === true) {
           return 'disabled';
@@ -287,7 +371,11 @@ const MAPS = {
     lastFile: {
       property: 'lastbackup',
       header: 'Last File BUP',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 11,
+      },
       normalizer: function (clientItem) {
         if (clientItem[this.property] === 0) {
           return clientItem[MAPS.client.isFileDisabled.property] === true ? 'disabled' : 'never';
@@ -310,7 +398,11 @@ const MAPS = {
     statusImage: {
       property: 'image_ok',
       header: 'Image BUP Status',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 6,
+        maxWidth: 8,
+      },
       normalizer: function (clientItem) {
         if (clientItem[MAPS.client.isImageDisabled.property] === true) {
           return 'disabled';
@@ -322,7 +414,11 @@ const MAPS = {
     lastImage: {
       property: 'lastbackup_image',
       header: 'Last Image BUP',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 11,
+      },
       normalizer: function (clientItem) {
         if (clientItem[this.property] === 0) {
           return clientItem[MAPS.client.isImageDisabled.property] === true ? 'disabled' : 'never';
@@ -341,7 +437,11 @@ const MAPS = {
     activity: {
       property: 'status',
       header: 'Activity',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 12,
+      },
       normalizer: function (clientItem) {
         return clientItem[this.property] === 0 ? 'none' : clientItem[this.property];
       },
@@ -371,12 +471,20 @@ const MAPS = {
     clientName: {
       property: 'name',
       header: 'Client Name',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 11,
+        maxWidth: 37,
+      },
     },
     file: {
       property: 'files',
       header: 'File Backups',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 10,
+      },
       normalizer: function (usageItem) {
         return Formatter.formatBytes(usageItem[this.property], 2);
       },
@@ -384,7 +492,11 @@ const MAPS = {
     image: {
       property: 'images',
       header: 'Image Backups',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 10,
+      },
       normalizer: function (usageItem) {
         return Formatter.formatBytes(usageItem[this.property], 2);
       },
@@ -392,7 +504,11 @@ const MAPS = {
     used: {
       property: 'used',
       header: 'Total',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 10,
+      },
       inList: true,
       normalizer: function (usageItem) {
         return Formatter.formatBytes(usageItem[this.property], 2);
@@ -403,12 +519,20 @@ const MAPS = {
     id: {
       property: 'id',
       header: 'Group ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 8,
+        maxWidth: 8,
+      },
     },
     name: {
       property: 'name',
       header: 'Group Name',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 10,
+        maxWidth: 65,
+      },
       inList: true,
     },
   },
@@ -416,18 +540,30 @@ const MAPS = {
     id: {
       property: 'id',
       header: 'User ID',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 4,
+        maxWidth: 4,
+      },
     },
     name: {
       property: 'name',
       header: 'User Name',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 9,
+        maxWidth: 20,
+      },
       inList: true,
     },
     rights: {
       property: 'rights',
       header: 'User Rights',
-      inTable: true,
+      table: {
+        include: true,
+        minWidth: 20,
+        maxWidth: 46,
+      },
       normalizer: function (userItem) {
         return JSON.stringify(userItem[this.property]);
       },
@@ -860,15 +996,26 @@ const printData = function (data, dataType, outputFormat) {
       break;
     case 'table':
       if (data.length > 0) {
-        const table = new Table().padding(2).border(true).maxColWidth(11);
-        const header = new Set();
+        const table = new Table().padding(1).border(true);
+        const header = [];
 
-        for (const element of data) {
+        for (const [elementIndex, element] of data.entries()) {
           const normalizedElement = {};
+          let columnIndex = 0;
 
           for (const [_key, value] of Object.entries(MAPS[dataType])) {
-            if (value?.inTable === true) {
-              header.add(value?.header ?? '');
+            if (value?.table?.include === true) {
+              if (elementIndex === 0) {
+                header.push(value?.header ?? '');
+                if (value.table?.minWidth > 0) {
+                  table.column(columnIndex, { minWidth: value.table.minWidth });
+                }
+                if (value.table?.maxWidth) {
+                  table.column(columnIndex, { maxWidth: value.table.maxWidth });
+                }
+                columnIndex += 1;
+              }
+
               normalizedElement[value.property] = typeof value?.normalizer === 'function' ? value.normalizer(element) : element[value.property];
             }
           }
