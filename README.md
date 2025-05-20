@@ -30,9 +30,7 @@ What it can do:
 
 - Delivers comprehensive details for a single client in one command.
 
-Planned Features:
-
-- Querying multiple servers simultaneously.
+- Retrieves a list of users along with their rights and client groups.
 
 Got a feature idea? Found a bug? Feel free to open an issue or suggestion on GitHub - feedback is always welcome!
 
@@ -170,6 +168,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
   - Removed `npm:ms` dependency.
   - Implement the `users` command to retrieve a list of users, and add the `URBSTAT_USERS_SORT` and `URBSTAT_USERS_FORMAT` settings.
   - Implement the `groups` command to retrieve a list of groups, and add the `URBSTAT_GROUPS_SORT` and `URBSTAT_GROUPS_FORMAT` settings.
+  - Add `--strict` option to the `failed-clients` command.
 
 - 0.15.0
   - Renamed `URBSTAT_THRESHOLD_UNSEEN_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_UNSEEN` and `URBSTAT_THRESHOLD_STALE_CLIENT` to `URBSTAT_CLIENTS_THRESHOLD_STALE`.
@@ -194,7 +193,7 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 - 0.10.0
   - The configuration file name has been changed from `.env` to `urbstat.conf`.
 
-## Documentation
+## Documentation for the latest version
 
 Access the built-in documentation using the `--help` option.
 
@@ -209,6 +208,12 @@ Get more help about a specific command and its applicable options:
 ```shell
 ./urbstat <command> --help
 ./urbstat failed-clients --help
+```
+
+Show the version number of your application:
+
+```shell
+./urbstat --version
 ```
 
 ### Global Options
@@ -261,7 +266,7 @@ Get more help about a specific command and its applicable options:
 
 - **ok-clients**
 
-  Retrieves clients with an 'OK' backup status. Excludes clients marked for removal. Backups finished with issues are treated as OK by default.
+  Retrieves clients with an 'OK' backup status. File backups finished with issues are treated as OK by default. Excludes clients marked for removal.
 
   Required rights: `status(all)`.
 
@@ -285,7 +290,7 @@ Get more help about a specific command and its applicable options:
 
 - **failed-clients**
 
-  Retrieves clients with a 'failed' backup status or those without a recent backup (as per UrBackup Server settings). Excludes clients marked for removal.
+  Retrieves clients with a 'failed' backup status or those without a recent backup (as per UrBackup Server settings). File backups finished with issues are treated as OK by default. Excludes clients marked for removal.
 
   Required rights: `status(all)`.
 
@@ -293,7 +298,7 @@ Get more help about a specific command and its applicable options:
 
   Default options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
 
-  Options: `--format`, `--sort`, `--reverse`, `--max`, `--skip-file`, `--skip-image`, `--skip-blank`, `--group-name`.
+  Options: `--format`, `--sort`, `--reverse`, `--max`, `--skip-file`, `--skip-image`, `--skip-blank`, `--strict`, `--group-name`.
 
 - **stale-clients**
 
@@ -441,7 +446,7 @@ Get more help about a specific command and its applicable options:
 
 - **users**
 
-  Retrieves all users.
+  Retrieves all users along with their rights.
 
   Required rights: `usermod(all)`, `settings(all)`.
 

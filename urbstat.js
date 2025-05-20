@@ -1140,8 +1140,7 @@ cli.command(
   });
 
 /**
- * Retrieves clients with an 'OK' backup status. Excludes clients marked for removal.
- * Backups finished with issues are treated as OK by default.
+ * Retrieves clients with an 'OK' backup status. File backups finished with issues are treated as OK by default. Excludes clients marked for removal.
  * Required rights: `status(all)`.
  * If the 'raw' format is specified, property names and values are returned as-is.
  * Default options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.
@@ -1149,7 +1148,7 @@ cli.command(
 cli
   .command(
     'ok-clients',
-    "Retrieves clients with an 'OK' backup status. Excludes clients marked for removal.\nBackups finished with issues are treated as OK by default.\nRequired rights: `status(all)`.\nIf the 'raw' format is specified, property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.",
+    "Retrieves clients with an 'OK' backup status. File backups finished with issues are treated as OK by default. Excludes clients marked for removal.\nRequired rights: `status(all)`.\nIf the 'raw' format is specified, property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_CLIENTS_FORMAT`, `URBSTAT_CLIENTS_SORT`, `URBSTAT_LOCALE`.",
   )
   .example('Get OK clients (uses default options)', 'ok-clients')
   .example('Get the total count of OK clients', 'ok-clients --format "number"')
@@ -1620,14 +1619,14 @@ cli.command(
   });
 
 /**
- * Retrieves all users. By default, all users are returned, but you can retrieve a specific user by specifying an ID or name.
+ * Retrieves all users along with their rights.
  * Required rights: `usermod(all)`, `settings(all)`.
  * If the 'raw' format is specified, property names and values are returned as-is.
  * Default options are configured using: `URBSTAT_USERS_SORT`, `URBSTAT_USERS_FORMAT`.
  */
 cli.command(
   'users',
-  "Retrieves all users.\nRequired rights: `usermod(all)`, `settings(all)`.\nIf the 'raw' format is specified, property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_USERS_SORT`, `URBSTAT_USERS_FORMAT`.",
+  "Retrieves all users along with their rights.\nRequired rights: `usermod(all)`, `settings(all)`.\nIf the 'raw' format is specified, property names and values are returned as-is.\nDefault options are configured using: `URBSTAT_USERS_SORT`, `URBSTAT_USERS_FORMAT`.",
 )
   .example('Get all users (uses default options)', 'users')
   .option('--format <format:usersFormatValues>', 'Change the output format.', { default: getSettings('URBSTAT_USERS_FORMAT') })
