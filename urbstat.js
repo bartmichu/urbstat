@@ -1039,7 +1039,7 @@ const printData = function (data, dataType, outputFormat) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.17.0-unstable')
+  .version('0.17.0')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options, such as server address and password, are set in the `urbstat.conf` configuration file.')
   .example('Get failed clients (uses password from configuration file)', 'urbstat failed-clients')
   .example('Get failed clients (prompts for password)', 'urbstat failed-clients --ask-pass')
