@@ -117,13 +117,13 @@ Once everything is set up, just run the application:
 Alternatively, instead of using the precompiled binary, you can install Deno and run the source file directly. You'll need to grant it permissions to read the configuration file and access the network (`--allow-read='urbstat.conf'`, `--allow-net`):
 
 ```shell
-deno run --allow-read='urbstat.conf' --allow-net urbstat.js
+deno run -P urbstat.js
 ```
 
 Or, if you need to bypass certificate verification:
 
 ```shell
-deno run --allow-read='urbstat.conf' --allow-net --unsafely-ignore-certificate-errors urbstat.js
+deno run -P --unsafely-ignore-certificate-errors urbstat.js
 ```
 
 ## Configuration
@@ -163,6 +163,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 - 0.18.0
   - Use `@std/cli/prompt-secret` instead of `@cliffy/prompt`.
+  - Use permission sets in the configuration file.
+  - Upgrade to Deno v2.6.0
+
 - 0.17.0
   - Major rewrite, code optimisations.
   - Allow sorting with `--sort` option for `raw` output format.

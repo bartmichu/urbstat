@@ -19,6 +19,9 @@ This changelog starts at version `0.10.0` and includes a selection of significan
 
 - 0.18.0
   - Use `@std/cli/prompt-secret` instead of `@cliffy/prompt`.
+  - Use permission sets in the configuration file.
+  - Upgrade to Deno v2.6.0
+
 - 0.17.0
   - Major rewrite, code optimisations.
   - Allow sorting with `--sort` option for `raw` output format.

@@ -38,5 +38,11 @@
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
     "urbackup-server-api": "npm:urbackup-server-api@^0.90.0"
   },
+  "permissions": {
+    "default": {
+      "net": true,
+      "read": ["./urbstat.conf"]
+    }
+  },
   "unstable": ["temporal"]
 }
