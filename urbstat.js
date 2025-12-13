@@ -1,7 +1,7 @@
 import { colors } from '@cliffy/ansi/colors';
 import { Command, EnumType } from '@cliffy/command';
 import { load } from '@std/dotenv';
-import { Secret } from '@cliffy/prompt';
+import { promptSecret } from '@std/cli/prompt-secret';
 import { Table } from '@cliffy/table';
 import { UrbackupServer } from 'urbackup-server-api';
 
@@ -717,7 +717,7 @@ async function makeServerCalls(requiredCalls, commandOptions) {
 
   const url = new URL(urlString);
   const username = (typeof commandOptions?.user === 'string' && commandOptions.user.length > 0) ? commandOptions.user : getSettings('URBSTAT_SERVER_USERNAME');
-  const password = commandOptions?.askPass === true ? await Secret.prompt('Enter password') : getSettings('URBSTAT_SERVER_PASSWORD');
+  const password = commandOptions?.askPass === true ? promptSecret('Enter password:') : getSettings('URBSTAT_SERVER_PASSWORD');
 
   const server = new UrbackupServer({
     url: url.href,
@@ -1039,7 +1039,7 @@ const printData = function (data, dataType, outputFormat) {
  */
 const cli = await new Command()
   .name('urbstat')
-  .version('0.17.1')
+  .version('0.18.0')
   .description('The Missing Command-line Tool for UrBackup Server.\nDefault options, such as server address and password, are set in the `urbstat.conf` configuration file.')
   .example('Get failed clients (uses password from configuration file)', 'urbstat failed-clients')
   .example('Get failed clients (prompts for password)', 'urbstat failed-clients --ask-pass')

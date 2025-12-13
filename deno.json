@@ -1,5 +1,5 @@
 {
-  "version": "0.17.1",
+  "version": "0.18.0",
   "fmt": {
     "lineWidth": 200,
     "proseWrap": "preserve",
@@ -33,8 +33,8 @@
   "imports": {
     "@cliffy/ansi": "jsr:@cliffy/ansi@1.0.0-rc.8",
     "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.8",
-    "@cliffy/prompt": "jsr:@cliffy/prompt@1.0.0-rc.8",
     "@cliffy/table": "jsr:@cliffy/table@1.0.0-rc.8",
+    "@std/cli": "jsr:@std/cli@^1.0.24",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
     "urbackup-server-api": "npm:urbackup-server-api@^0.90.0"
   },
