@@ -1,5 +1,5 @@
 {
-  "version": "0.18.0",
+  "version": "0.18.1",
   "fmt": {
     "lineWidth": 200,
     "proseWrap": "preserve",
@@ -36,7 +36,7 @@
     "@cliffy/table": "jsr:@cliffy/table@1.0.0-rc.8",
     "@std/cli": "jsr:@std/cli@^1.0.24",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
-    "urbackup-server-api": "npm:urbackup-server-api@^0.90.0"
+    "urbackup-server-api": "npm:urbackup-server-api@^0.90.1"
   },
   "permissions": {
     "default": {
