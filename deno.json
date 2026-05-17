@@ -38,6 +38,7 @@
     "@std/dotenv": "jsr:@std/dotenv@^0.225.6",
     "urbackup-server-api": "npm:urbackup-server-api@^0.92.4"
   },
+  "minimumDependencyAge": "1440",
   "permissions": {
     "default": {
       "net": true,
