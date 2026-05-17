@@ -44,6 +44,5 @@
       "net": true,
       "read": ["./urbstat.conf"]
     }
-  },
-  "unstable": ["temporal"]
+  }
 }
